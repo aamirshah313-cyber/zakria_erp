@@ -1,0 +1,7 @@
+﻿"code","name","description","active"
+"TEST-INCOME","TEST Income","Synthetic income receipts","true"
+"TEST-SUPPLIES","TEST Supplies","Synthetic supply payments","true"
+"TEST-TRAVEL","TEST Travel","Synthetic travel costs","true"
+"TEST-LOAN","TEST Loan principal","Principal movements, not income or expense","true"
+"TEST-ADVANCE","TEST Advances","Advances awaiting settlement","true"
+"TEST-DONATION","TEST Donations","Synthetic donation receipts","true"

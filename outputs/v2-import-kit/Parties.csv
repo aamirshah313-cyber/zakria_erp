@@ -1,0 +1,7 @@
+﻿"name","kind","entity_type","address","phone","email","ntn","strn","active"
+"TEST Client organization","customer","organization","TEST Islamabad","","","","","true"
+"TEST Contractor","contractor","person","","","","","","true"
+"TEST Employee","employee","person","","","","","","true"
+"TEST Sadat Poultry Service","supplier","organization","","","","","","true"
+"TEST Mian Nisar Ahmed","supplier","person","","","","","","true"
+"TEST Poultry Research Institute","customer","organization","","","","","","true"

@@ -1,0 +1,3 @@
+﻿"name","kind","account_title","bank","branch","account_number","iban","active"
+"TEST Bank","bank","","","","","","true"
+"TEST Cash","cash","","","","","","true"
