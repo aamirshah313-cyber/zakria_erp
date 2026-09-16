@@ -1,5 +1,43 @@
 # Implementation status — 17 September 2026
 
+## Next tasks
+
+Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
+
+### 1. Verify the latest release on this computer (user and developer)
+- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.5.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts.
+- Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
+- Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
+- Close the application and confirm zakaria_service.exe stops with it.
+
+### 2. Move acceptance data into the installed application
+- Decide whether storage/v2-desktop test data should be kept. If yes: grant system.backup in the acceptance package, save a backup, and restore it through Backup & restore in the installed copy (the installed copy is already set up, so the first-run restore route no longer applies).
+
+### 3. Client acceptance of V2.1 (user)
+- Activate an independent General Manager account; assign cancellation, import and bank-identifier permissions deliberately.
+- Work through V2_INCREMENT_5.md with the testing workbook: setup-record imports, transaction import, approval, reports, PDF/XLSX export, draft removal/restore.
+- Record usability issues found during acceptance as the next development input.
+
+### 4. Release hardening (developer)
+- Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
+- Two Windows accounts: confirm shared data and the one-session-at-a-time message.
+- Fix the failing workspace_admin_test at 1100px (sidebar ListTile needs a Material ancestor); keep golden images unchanged.
+- Show startup progress during first run and upgrades; the window currently appears only after the service is ready.
+- Streamed backup/restore for large databases (currently in memory, 2 GB limit).
+
+### 5. Distribution (user decisions required)
+- Obtain a code-signing certificate so SmartScreen does not warn; sign setup and application executables.
+- Choose how updates reach the client computer (manual installer copy vs. download/update check).
+- Deliver an emergency owner recovery procedure for when every administrator is locked out (V2_DESKTOP_SCOPE.md requires it before release).
+
+### 6. Remaining V2 scope
+- Binary supporting documents on openings and transfers (currently reference/location text only).
+- Full historical migration once the client supplies original workbooks; reconcile the PKR 4,409,259 difference between the main receipts total (59,202,802) and the receipt summary (63,612,061) first.
+- Client answers still open: meaning of "Sent to" and "Paid By", category list, report naming, computer/share arrangement.
+
+### Deferred until the client authorizes
+Double-entry posting, trial balance and statutory statements; payroll, fixed assets, tax/FBR integration and live tax invoices; Android, multi-computer or cloud sync and PostgreSQL production hosting.
+
 ## V2.1 — current increment
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
