@@ -1,0 +1,80 @@
+; Zakaria ERP Windows installer (Inno Setup 6).
+; Build with scripts\build-v2-installer.ps1; it stages the verified package
+; without data-directory.txt so the installed app uses shared ProgramData.
+;
+; Business data lives in C:\ProgramData\ZakariaERP, outside the program folder.
+; Installing, upgrading, repairing or uninstalling never deletes that data.
+
+#ifndef SourceDir
+  #error Pass /DSourceDir=<staged package folder>
+#endif
+#ifndef AppVersion
+  #error Pass /DAppVersion=<version>
+#endif
+#ifndef OutputDir
+  #define OutputDir "..\artifacts\installer"
+#endif
+
+[Setup]
+; Never change AppId: upgrades and uninstall entries depend on it.
+AppId={{6B0E3F52-6E4C-4C1A-9C57-2B9D4A7E1F30}
+AppName=Zakaria ERP
+AppVersion={#AppVersion}
+AppVerName=Zakaria ERP {#AppVersion}
+AppPublisher=Muhammad Zakaria and Sons
+VersionInfoVersion={#AppVersion}
+VersionInfoProductName=Zakaria ERP
+DefaultDirName={autopf}\Zakaria ERP
+DefaultGroupName=Zakaria ERP
+DisableProgramGroupPage=yes
+PrivilegesRequired=admin
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+MinVersion=10.0
+; Setup detects the running application and asks the user to close it.
+AppMutex=Global\ZakariaERP-V2-Native
+CloseApplications=yes
+RestartApplications=no
+OutputDir={#OutputDir}
+OutputBaseFilename=ZakariaERP-Setup-{#AppVersion}
+SetupIconFile=..\apps\client\windows\runner\resources\app_icon.ico
+UninstallDisplayIcon={app}\ZakariaERP.exe
+UninstallDisplayName=Zakaria ERP
+Compression=lzma2/ultra64
+SolidCompression=yes
+WizardStyle=modern
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+
+[Dirs]
+; Shared by every Windows account on this computer; kept on uninstall.
+Name: "{commonappdata}\ZakariaERP"; Permissions: users-modify; Flags: uninsneveruninstall
+
+[InstallDelete]
+; Remove the previous bundled runtime so upgrades never mix old and new files.
+Type: filesandordirs; Name: "{app}\backend"
+Type: filesandordirs; Name: "{app}\data"
+
+[Files]
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{autoprograms}\Zakaria ERP"; Filename: "{app}\ZakariaERP.exe"
+Name: "{autodesktop}\Zakaria ERP"; Filename: "{app}\ZakariaERP.exe"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\ZakariaERP.exe"; Description: "{cm:LaunchProgram,Zakaria ERP}"; Flags: nowait postinstall skipifsilent runasoriginaluser
+
+[Code]
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usPostUninstall then
+    MsgBox('Zakaria ERP was removed. Business data, supporting documents and backups were kept in:' + #13#10 +
+      ExpandConstant('{commonappdata}\ZakariaERP') + #13#10#13#10 +
+      'Reinstalling uses this data again. Delete the folder yourself only after keeping a verified backup.',
+      mbInformation, MB_OK);
+end;

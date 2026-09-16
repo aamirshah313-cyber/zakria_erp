@@ -4,6 +4,12 @@
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
 
+## Windows installer — 17 September 2026
+
+See V2_INSTALLER.md. Inno Setup installer artifacts/installer/ZakariaERP-Setup-2.1.0.exe (39,532,246 bytes) built from package ZakariaERP-V2-20260917-013441 (2.1.0+4). Installs for all users; shared data in C:\ProgramData\ZakariaERP, kept on uninstall. New installations show a one-time Set up this computer screen for the first Administrator; database upgrades are backed up and integrity-checked before migration; startup errors go to logs\service.log.
+
+Verification: 69 backend tests (7 new first-run tests) and 17 of 18 Flutter tests pass. The failing workspace_admin_test case at 1100px fails identically on the previous commit (sidebar ListTile Material assertion) and is tracked separately. Unfrozen service checks passed for a fresh folder and for an upgrade from migration 0008 (backup created, users/passwords unchanged). The frozen backend from the installer staging initialized an empty folder in 8 seconds, completed first-run setup, Administrator login and register access, then closed setup; the existing-data smoke check still passes. The installer itself has not yet been run: install/upgrade/uninstall on a clean Windows computer, SmartScreen behaviour of the unsigned setup and a two-account shared-data check remain acceptance steps. Existing storage/v2-desktop acceptance data is not migrated automatically.
+
 ## V2.1 Windows acceptance package — 17 September 2026
 
 Native Windows V2.1 package (version 2.1.0+3) built with scripts/package-v2-windows.ps1 at artifacts/windows-v2/ZakariaERP-V2-20260917-005938/ZakariaERP.exe, with ZIP artifacts/windows-v2/ZakariaERP-V2-20260917-005938.zip (57,319,324 bytes). It supersedes the 15 September V2.0 package recorded below, which predates migration 0009.

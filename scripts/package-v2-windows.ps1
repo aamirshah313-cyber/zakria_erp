@@ -17,7 +17,7 @@ if (-not $UseExistingBackend) {
 if (-not (Test-Path -LiteralPath "$taskArtifacts\service\zakaria_service\zakaria_service.exe")) { throw 'The bundled backend executable is missing.' }
 if ($BackendOnly) { Write-Output "Backend package: $taskArtifacts\service\zakaria_service"; exit 0 }
 Set-Location -LiteralPath (Join-Path $taskRoot 'apps\client')
-& $taskDart $taskFlutter build windows --release --no-pub --build-name=2.1.0 --build-number=3 --dart-define=V2_DESKTOP=true --dart-define=API_URL=http://127.0.0.1:8765/api
+& $taskDart $taskFlutter build windows --release --no-pub --build-name=2.1.0 --build-number=4 --dart-define=V2_DESKTOP=true --dart-define=API_URL=http://127.0.0.1:8765/api
 if ($LASTEXITCODE -ne 0) { throw 'Windows client build failed. Check C++ toolchain and symbolic-link privileges.' }
 $taskRelease = Join-Path $taskRoot 'apps\client\build\windows\x64\runner\Release'
 $taskPackage = Join-Path $taskArtifacts ('ZakariaERP-V2-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))

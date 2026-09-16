@@ -1,6 +1,7 @@
 #ifndef ZAKARIA_DESKTOP_SERVICE_H_
 #define ZAKARIA_DESKTOP_SERVICE_H_
 #include <windows.h>
+#include <shlobj.h>
 #include <winhttp.h>
 #include <filesystem>
 #include <fstream>
@@ -27,19 +28,36 @@ class DesktopService {
     if (!std::filesystem::exists(backend) && !std::filesystem::exists(config)) {
       return true;  // Developer client without the packaged service.
     }
-    mutex_ = CreateMutexW(nullptr, TRUE, L"Local\\ZakariaERP-V2-Native");
-    if (!mutex_ || GetLastError() == ERROR_ALREADY_EXISTS) {
-      return Fail(L"Zakaria ERP is already open. Use the existing application window.");
+    // Global: one shared database per computer, so a second Windows account
+    // must not start its own service against the same data.
+    mutex_ = CreateMutexW(nullptr, TRUE, L"Global\\ZakariaERP-V2-Native");
+    if (!mutex_ || GetLastError() == ERROR_ALREADY_EXISTS || GetLastError() == ERROR_ACCESS_DENIED) {
+      return Fail(L"Zakaria ERP is already open on this computer, possibly in another Windows account. Close it there before opening it here.");
     }
-    std::ifstream input(config, std::ios::binary);
-    std::string encoded;
-    std::getline(input, encoded);
-    if (!encoded.empty() && encoded.back() == '\r') encoded.pop_back();
-    const int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, encoded.data(), static_cast<int>(encoded.size()), nullptr, 0);
-    if (!count || !std::filesystem::exists(backend)) return Fail(L"The desktop package is incomplete. Keep its backend, data and DLL folders together.");
-    std::wstring data(count, L'\0');
-    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, encoded.data(), static_cast<int>(encoded.size()), data.data(), count);
+    if (!std::filesystem::exists(backend)) return Fail(L"The desktop package is incomplete. Reinstall Zakaria ERP or keep its backend, data and DLL folders together.");
+    std::wstring data;
+    if (std::filesystem::exists(config)) {
+      // Acceptance packages name an explicit data folder.
+      std::ifstream input(config, std::ios::binary);
+      std::string encoded;
+      std::getline(input, encoded);
+      if (!encoded.empty() && encoded.back() == '\r') encoded.pop_back();
+      const int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, encoded.data(), static_cast<int>(encoded.size()), nullptr, 0);
+      if (!count) return Fail(L"The V2 data-folder configuration is invalid.");
+      data.assign(count, L'\0');
+      MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, encoded.data(), static_cast<int>(encoded.size()), data.data(), count);
+    } else {
+      // Installed application: shared data prepared by the installer.
+      PWSTR common = nullptr;
+      if (FAILED(SHGetKnownFolderPath(FOLDERID_ProgramData, 0, nullptr, &common))) {
+        if (common) CoTaskMemFree(common);
+        return Fail(L"Cannot locate the shared ProgramData folder.");
+      }
+      data = (std::filesystem::path(common) / L"ZakariaERP").wstring();
+      CoTaskMemFree(common);
+    }
     if (data.find(L'"') != std::wstring::npos || !std::filesystem::path(data).is_absolute()) return Fail(L"The V2 data-folder configuration is invalid.");
+    log_ = (std::filesystem::path(data) / L"logs" / L"service.log").wstring();
     // Refuse a occupied port rather than attaching to an unrelated local server.
     if (Healthy()) return Fail(L"A desktop service is already using port 8765. Close the earlier desktop service before opening this package.");
     job_ = CreateJobObjectW(nullptr, nullptr);
@@ -59,16 +77,19 @@ class DesktopService {
     }
     ResumeThread(process.hThread);
     CloseHandle(process.hThread);
-    for (int attempt = 0; attempt < 90; ++attempt) {
+    // First run and upgrades create or back up the database before listening.
+    for (int attempt = 0; attempt < 600; ++attempt) {
       if (WaitForSingleObject(process_, 0) == WAIT_OBJECT_0) break;
       if (Healthy()) return true;
       Sleep(300);
     }
-    return Fail(L"The desktop service could not become ready. Check the V2 data-folder configuration and database upgrade before retrying.");
+    const std::wstring message = L"The desktop service could not start. Details are in:\n" + log_;
+    return Fail(message.c_str());
   }
 
  private:
   HANDLE job_ = nullptr, process_ = nullptr, mutex_ = nullptr;
+  std::wstring log_;
   static bool Fail(const wchar_t* message) {
     MessageBoxW(nullptr, message, L"Muhammad Zakaria and Sons", MB_OK | MB_ICONINFORMATION);
     return false;

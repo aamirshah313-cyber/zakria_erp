@@ -68,7 +68,13 @@ class _ZakariaAppState extends State<ZakariaApp> {
 
 class SignIn extends StatefulWidget {
   final VoidCallback onLogin;
-  const SignIn({super.key, required this.onLogin});
+  // Desktop installations offer one-time administrator setup on first run.
+  final bool checkFirstRun;
+  const SignIn({
+    super.key,
+    required this.onLogin,
+    this.checkFirstRun = v2Desktop,
+  });
   @override
   State<SignIn> createState() => _SignInState();
 }
@@ -77,13 +83,32 @@ class _SignInState extends State<SignIn> {
   final username = TextEditingController(),
       password = TextEditingController(),
       email = TextEditingController(),
-      name = TextEditingController();
+      name = TextEditingController(),
+      confirm = TextEditingController();
   late final server = TextEditingController(text: api.base);
-  bool register = false, busy = false, showServer = false;
+  bool register = false, busy = false, showServer = false, firstRun = false;
   String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.checkFirstRun) checkFirstRun();
+  }
+
+  Future<void> checkFirstRun() async {
+    try {
+      final status = await api.get('/setup/');
+      if (mounted && status['required'] == true) {
+        setState(() => firstRun = true);
+      }
+    } catch (_) {
+      // Sign-in remains available; its errors explain connection problems.
+    }
+  }
+
   @override
   void dispose() {
-    for (final c in [username, password, email, name, server]) {
+    for (final c in [username, password, email, name, server, confirm]) {
       c.dispose();
     }
     super.dispose();
@@ -102,6 +127,19 @@ class _SignInState extends State<SignIn> {
         throw Exception('Enter a valid server URL.');
       }
       api.base = server.text.trim().replaceAll(RegExp(r'/$'), '');
+      if (firstRun) {
+        if (password.text != confirm.text) {
+          throw Exception('The passwords do not match.');
+        }
+        await api.send('/setup/', {
+          'username': username.text,
+          'email': email.text,
+          'first_name': name.text,
+          'password': password.text,
+          'confirm_password': confirm.text,
+        });
+        firstRun = false;
+      }
       if (register) {
         final result = await api.send('/auth/register/', {
           'username': username.text,
@@ -205,7 +243,11 @@ class _SignInState extends State<SignIn> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        register ? 'Create your account' : 'Welcome back',
+                        firstRun
+                            ? 'Set up this computer'
+                            : register
+                            ? 'Create your account'
+                            : 'Welcome back',
                         style: const TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w600,
@@ -213,22 +255,26 @@ class _SignInState extends State<SignIn> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        register
+                        firstRun
+                            ? 'Create the first administrator account. This appears only once, before any account is active. Staff then register and the administrator approves them.'
+                            : register
                             ? 'Your administrator will approve access and assign a role.'
                             : 'Sign in to your business workspace.',
                         style: const TextStyle(color: muted),
                       ),
                       const SizedBox(height: 30),
-                      if (register) field('Full name', name),
+                      if (register || firstRun) field('Full name', name),
                       field('Username', username),
-                      if (register) field('Email', email),
+                      if (register || firstRun) field('Email', email),
                       field(
-                        register
+                        register || firstRun
                             ? 'Password · at least 10 characters'
                             : 'Password',
                         password,
                         secret: true,
                       ),
+                      if (firstRun)
+                        field('Confirm password', confirm, secret: true),
                       if (error != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -244,6 +290,8 @@ class _SignInState extends State<SignIn> {
                           child: Text(
                             busy
                                 ? 'Please wait…'
+                                : firstRun
+                                ? 'Create administrator'
                                 : register
                                 ? 'Request access'
                                 : 'Sign in',
@@ -251,7 +299,7 @@ class _SignInState extends State<SignIn> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      if (v2Desktop && !register)
+                      if (v2Desktop && !register && !firstRun)
                         TextButton(
                           onPressed: busy
                               ? null
@@ -264,17 +312,18 @@ class _SignInState extends State<SignIn> {
                                 },
                           child: const Text('Forgot password?'),
                         ),
-                      TextButton(
-                        onPressed: () => setState(() {
-                          register = !register;
-                          error = null;
-                        }),
-                        child: Text(
-                          register
-                              ? 'Already registered? Sign in'
-                              : 'New colleague? Register an account',
+                      if (!firstRun)
+                        TextButton(
+                          onPressed: () => setState(() {
+                            register = !register;
+                            error = null;
+                          }),
+                          child: Text(
+                            register
+                                ? 'Already registered? Sign in'
+                                : 'New colleague? Register an account',
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 12),
                       TextButton(
                         onPressed: () =>
@@ -283,10 +332,11 @@ class _SignInState extends State<SignIn> {
                       ),
                       if (showServer) field('API server URL', server),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Initial setup: run the backend bootstrap command to create the first administrator. No default credentials.',
-                        style: TextStyle(fontSize: 12, color: muted),
-                      ),
+                      if (!v2Desktop)
+                        const Text(
+                          'Initial setup: run the backend bootstrap command to create the first administrator. No default credentials.',
+                          style: TextStyle(fontSize: 12, color: muted),
+                        ),
                     ],
                   ),
                 ),

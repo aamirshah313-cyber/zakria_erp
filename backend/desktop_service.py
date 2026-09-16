@@ -1,12 +1,59 @@
-"""Private bundled service for native Windows acceptance testing.
+"""Private bundled service for the native Windows application.
 
-No migrations, bootstrap users, secret regeneration or database copies occur here.
-The configured existing isolated V2 data must already be initialized.
+The launcher passes the shared data folder. A missing folder is initialized as a
+new, empty installation (private secret, database schema); the first
+administrator is then created through the application's one-time setup screen.
+An existing database with pending schema changes is backed up and integrity
+checked before it is upgraded. No users, passwords or business records are
+created, copied or changed here.
 """
 import argparse
+from datetime import datetime
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
+import secrets
+import sqlite3
 import sys
+
+log = logging.getLogger('zakaria.desktop')
+
+
+def prepare_data(data):
+    """Create a new installation's folders and secret; refuse partial data."""
+    database, secret = data / 'register.sqlite3', data / 'service-secret.txt'
+    if database.exists() and not secret.is_file():
+        raise RuntimeError(f'{data} has a database but no service secret. Restore the complete data folder from backup.')
+    for folder in (data, data / 'evidence', data / 'backups', data / 'logs'):
+        folder.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(secret, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        pass
+    else:
+        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+            stream.write(secrets.token_urlsafe(64))
+        log.info('Created a new service secret for this installation.')
+    return database
+
+
+def backup_before_upgrade(database, backups):
+    target = backups / f"before-upgrade-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
+    with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as source, sqlite3.connect(target) as copy:
+        source.backup(copy)
+        if copy.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+            raise RuntimeError('The pre-upgrade backup failed its integrity check; the database was not upgraded.')
+    return target
+
+
+def configure_logging(data):
+    handler = RotatingFileHandler(data / 'logs' / 'service.log', maxBytes=1_000_000, backupCount=3, encoding='utf-8')
+    handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+    root = logging.getLogger()
+    root.addHandler(handler)
+    root.addHandler(logging.StreamHandler(sys.stdout))
+    root.setLevel(logging.INFO)
 
 
 def main():
@@ -14,9 +61,13 @@ def main():
     parser.add_argument('--data-dir', required=True)
     parser.add_argument('--port', type=int, default=8765, choices=[8765])
     args = parser.parse_args()
-    data = Path(args.data_dir).resolve(strict=True)
-    if not (data/'register.sqlite3').is_file() or not (data/'service-secret.txt').is_file():
-        raise RuntimeError('Select initialized V2 data; the pilot database is never used.')
+    data = Path(args.data_dir)
+    if not data.is_absolute():
+        raise RuntimeError('The data folder must be an absolute path.')
+    data = data.resolve()
+    database = prepare_data(data)
+    configure_logging(data)
+    existing = database.is_file() and database.stat().st_size > 0
     os.environ['ERP_DESKTOP_DATA_DIR'] = str(data)
     os.environ['DJANGO_SETTINGS_MODULE'] = 'config.desktop'
     # Isolate this service from unrelated shell database configuration.
@@ -25,14 +76,22 @@ def main():
     from django.core.wsgi import get_wsgi_application
     from waitress import create_server
     app = get_wsgi_application()
-    # Preflight reads only: report pending migrations instead of changing accounts.
+    from django.core.management import call_command
     from django.db import connection
     from django.db.migrations.executor import MigrationExecutor
     executor = MigrationExecutor(connection)
-    if executor.migration_plan(executor.loader.graph.leaf_nodes()):
-        raise RuntimeError('The V2 database requires a backed-up upgrade before launch.')
+    plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
+    if plan:
+        if existing:
+            backup = backup_before_upgrade(database, data / 'backups')
+            log.info('Backed up %s before applying %d schema change(s): %s', database.name, len(plan), backup)
+        else:
+            log.info('Initializing a new database with %d schema change(s).', len(plan))
+        call_command('migrate', interactive=False, verbosity=0)
+        connection.close()
+        log.info('Database schema is current.')
     server = create_server(app, host='127.0.0.1', port=args.port)
-    print('V2 desktop service ready on loopback.', flush=True)
+    log.info('V2 desktop service ready on loopback using %s', data)
     server.run()
 
 
@@ -40,5 +99,6 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as error:
+        log.exception('Desktop startup failed')
         print(f'Desktop startup failed: {error}', file=sys.stderr, flush=True)
         raise SystemExit(1)

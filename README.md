@@ -1,6 +1,6 @@
 # Muhammad Zakaria and Sons — ERP pilot
 
-**Current direction: V2.0 Windows desktop register and linked ledgers.** See [V2 scope](docs/V2_DESKTOP_SCOPE.md) and [desktop environment](docs/V2_ENVIRONMENT.md). Full double-entry accounting is deferred by user request. The instructions below describe the existing pilot; they do not mean the V2 features or installer are already complete.
+**Current direction: V2.0 Windows desktop register and linked ledgers.** See [V2 scope](docs/V2_DESKTOP_SCOPE.md), [desktop environment](docs/V2_ENVIRONMENT.md) and [Windows installer](docs/V2_INSTALLER.md). Full double-entry accounting is deferred by user request. The instructions below describe the existing pilot; they do not mean the V2 features or installer are already complete.
 
 Windows/Android Flutter client with a Django API. Start with **docs/IMPLEMENTATION_STATUS.md** for exactly what is implemented and what remains. This is not ready for production financial use.
 
