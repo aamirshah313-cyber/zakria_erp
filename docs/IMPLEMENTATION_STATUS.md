@@ -1,5 +1,16 @@
 # Implementation status — 17 September 2026
 
+## Current release
+
+| Item | Location | State |
+|---|---|---|
+| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.7.exe | Built and icon-checked; not yet installed or run |
+| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260917-041523/ | Built; runs against storage/v2-desktop test data |
+| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+7-debug.apk | Built and package-checked; cannot sign in until a reachable server exists |
+| Source | GitHub aamirshah313-cyber/zakria_erp (private), main | Pushed at 78ff4aa |
+
+Tests at this release: 81 backend tests pass; 22 of 23 Flutter tests pass (known workspace_admin_test failure). Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
+
 ## Next tasks
 
 Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
@@ -10,6 +21,7 @@ Current priority order. Sections below record what is already delivered; the old
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
 - Close the application and confirm zakaria_service.exe stops with it.
+- Install the debug APK on a test phone: check the launcher icon, sign-in logo and that Connection settings opens (sign-in waits for task 7).
 
 ### 2. Move acceptance data into the installed application
 - Decide whether storage/v2-desktop test data should be kept. If yes: grant system.backup in the acceptance package, save a backup, and restore it through Backup & restore in the installed copy (the installed copy is already set up, so the first-run restore route no longer applies).
@@ -27,6 +39,7 @@ Current priority order. Sections below record what is already delivered; the old
 - Streamed backup/restore for large databases (currently in memory, 2 GB limit).
 - List the branding tools (resvg-py, potracer, numpy, PyMuPDF) in a separate developer requirements file; they are installed in .venv for asset generation only, and numpy is explicitly excluded from the bundled backend.
 - Exercise backup/restore inside the frozen service once port 8765 is free.
+- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.6 and older package folders) after the 2.1.0.7 upgrade is confirmed, keeping one previous release for rollback.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
@@ -40,7 +53,8 @@ Current priority order. Sections below record what is already delivered; the old
 
 ### 7. Android access (user decisions required)
 - Decide how phones reach data: a LAN server mode on the Windows PC (needs deliberate network exposure and a firewall rule on trusted Wi-Fi) or an HTTPS-hosted server. Until then the APK cannot sign in.
-- For wider distribution: create a release signing key (backed up outside git), build a release APK/AAB and test on real phones.
+- Adapt the service for the chosen route: listen beyond 127.0.0.1 only when explicitly configured, allowed hosts for that address, HTTPS or trusted-network rules, and login rate limits suited to network exposure.
+- For wider distribution: create a release signing key (backed up outside git), build a release APK or AAB split per ABI (the debug APK is 194 MB), and test on real phones.
 
 ### 8. Remaining V2 scope
 - Binary supporting documents on openings and transfers (currently reference/location text only).
@@ -48,7 +62,7 @@ Current priority order. Sections below record what is already delivered; the old
 - Client answers still open: meaning of "Sent to" and "Paid By", category list, report naming, computer/share arrangement.
 
 ### Deferred until the client authorizes
-Double-entry posting, trial balance and statutory statements; payroll, fixed assets, tax/FBR integration and live tax invoices; Android, multi-computer or cloud sync and PostgreSQL production hosting.
+Double-entry posting, trial balance and statutory statements; payroll, fixed assets, tax/FBR integration and live tax invoices; Play Store publication, multi-computer or cloud sync and PostgreSQL production hosting. (A debug Android test APK exists; production Android access depends on task 7.)
 
 ## V2.1 — current increment
 
