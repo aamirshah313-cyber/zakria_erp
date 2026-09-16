@@ -1,8 +1,16 @@
-# Implementation status — 16 September 2026
+# Implementation status — 17 September 2026
 
 ## V2.1 — current increment
 
-Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing. Browser and desktop release verification is being finalized; the older package links below are historical until the new release is recorded.
+Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
+
+## V2.1 Windows acceptance package — 17 September 2026
+
+Native Windows V2.1 package (version 2.1.0+3) built with scripts/package-v2-windows.ps1 at artifacts/windows-v2/ZakariaERP-V2-20260917-005938/ZakariaERP.exe, with ZIP artifacts/windows-v2/ZakariaERP-V2-20260917-005938.zip (57,319,324 bytes). It supersedes the 15 September V2.0 package recorded below, which predates migration 0009.
+
+Verification: packaging exited 0; scripts/check_bundled_v2_service.py confirmed the frozen backend reports version 2.1.0 desktop-register health (200), rejects unauthenticated business access (401) and stops only its own process. All 6,333 archive entries passed CRC verification; no database, service-secret or .env files are included; the V2 testing workbook is bundled. data-directory.txt points to the existing isolated storage/v2-desktop folder. Interactive client acceptance and application-close lifecycle checks remain outstanding. This is still an unsigned package for this computer, not a general-purpose installer.
+
+Source control: the project is now under git on branch main, with a private GitHub remote (aamirshah313-cyber/zakria_erp). Local databases, storage/, artifacts/ and node_modules/ are excluded.
 
 ## V2 feature visibility and explicit role activation
 
@@ -16,7 +24,7 @@ Read-only request-factory checks against the existing V2 profile passed for Admi
 
 User action: click the application Refresh button or sign out/in. Administrator should see Register setup and Transaction register. Inside the register are Openings / Transfers, Import spreadsheet and Reports / Print. Configure categories, projects and cash/bank sources before entering test transactions. Assign sensitive bank-identifier access only to the designated staff through Roles & permissions.
 
-Native Windows V2 client built successfully at artifacts/windows-v2/ZakariaERP-V2-20260915-060559/ZakariaERP.exe (version 2.0.0+2). Microsoft C++ Build Tools and Windows SDK installation completed successfully; Flutter doctor reports no issues. The build used elevation for plugin links without enabling Developer Mode globally. PyInstaller bundled the backend; scripts/check_bundled_v2_service.py verified health (200), protected business endpoint (401) and owned-process shutdown. The packaged native EXE was launched and its bundled service returned health 200 on port 8765. Full interactive acceptance and application-close lifecycle checks remain for testing.
+Historical (superseded by the 17 September V2.1 package above): native Windows V2 client built successfully at artifacts/windows-v2/ZakariaERP-V2-20260915-060559/ZakariaERP.exe (version 2.0.0+2). Microsoft C++ Build Tools and Windows SDK installation completed successfully; Flutter doctor reports no issues. The build used elevation for plugin links without enabling Developer Mode globally. PyInstaller bundled the backend; scripts/check_bundled_v2_service.py verified health (200), protected business endpoint (401) and owned-process shutdown. The packaged native EXE was launched and its bundled service returned health 200 on port 8765. Full interactive acceptance and application-close lifecycle checks remain for testing.
 
 Keep the complete package folder together, including backend, data and DLLs. Its data-directory.txt points to the existing isolated storage/v2-desktop folder; company database/passwords/secret files are not bundled. This is an unsigned acceptance package for this computer, not a general-purpose installer. Packaging completed with exit code 0. The ZIP at artifacts/windows-v2/ZakariaERP-V2-20260915-060559.zip is 57,267,132 bytes; all 6,330 archive entries passed CRC verification and the database/service-secret exclusion check. Moving to another computer still requires reviewed V2 data setup.
 
