@@ -5,6 +5,7 @@ import 'ui.dart';
 import 'screens.dart';
 import 'recovery.dart';
 import 'register_data.dart';
+import 'backup.dart';
 
 void main() => runApp(const ZakariaApp());
 
@@ -312,6 +313,26 @@ class _SignInState extends State<SignIn> {
                                 },
                           child: const Text('Forgot password?'),
                         ),
+                      if (firstRun)
+                        TextButton(
+                          key: const Key('first-run-restore'),
+                          onPressed: busy
+                              ? null
+                              : () async {
+                                  if (await restoreBackup(
+                                        context,
+                                        setup: true,
+                                      ) &&
+                                      context.mounted) {
+                                    setState(() => firstRun = false);
+                                    notice(
+                                      context,
+                                      'Backup restored. Sign in with an account from the backup.',
+                                    );
+                                  }
+                                },
+                          child: const Text('Restore from a backup instead'),
+                        ),
                       if (!firstRun)
                         TextButton(
                           onPressed: () => setState(() {
@@ -427,6 +448,8 @@ class _WorkspaceState extends State<Workspace> {
       ('Transaction register', Icons.book_outlined),
     if (v2Desktop && api.can('register.manage'))
       ('Register setup', Icons.settings_outlined),
+    if (v2Desktop && (api.can('system.backup') || api.can('system.restore')))
+      ('Backup & restore', Icons.backup_outlined),
     if (api.can('users.manage')) ('Users', Icons.manage_accounts_outlined),
     if (api.can('roles.manage'))
       ('Roles & permissions', Icons.admin_panel_settings_outlined),
@@ -637,7 +660,15 @@ class _WorkspaceState extends State<Workspace> {
                     padding: EdgeInsets.all(wide ? 32 : 16),
                     child: KeyedSubtree(
                       key: ValueKey('$page-$revision'),
-                      child: Screen(page: page, refresh: refresh),
+                      child: Screen(
+                        page: page,
+                        refresh: refresh,
+                        signOut: () {
+                          api.token = null;
+                          api.user = {};
+                          widget.onLogout();
+                        },
+                      ),
                     ),
                   ),
                 ),

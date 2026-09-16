@@ -14,6 +14,7 @@ import 'recovery.dart';
 import 'registers.dart';
 import 'dashboard.dart';
 import 'register_evidence.dart';
+import 'backup.dart';
 
 Future<void> exportFile(
   BuildContext context,
@@ -58,7 +59,13 @@ Future<void> exportFile(
 class Screen extends StatefulWidget {
   final String page;
   final Future<void> Function() refresh;
-  const Screen({super.key, required this.page, required this.refresh});
+  final VoidCallback? signOut;
+  const Screen({
+    super.key,
+    required this.page,
+    required this.refresh,
+    this.signOut,
+  });
   @override
   State<Screen> createState() => _ScreenState();
 }
@@ -821,6 +828,9 @@ class _ScreenState extends State<Screen> {
         widget.page == 'Register setup')
       return RegisterPage(setup: widget.page == 'Register setup');
     if (widget.page == 'Accounting setup') return const AccountingSetupPage();
+    if (widget.page == 'Backup & restore') {
+      return BackupPage(onRestored: widget.signOut ?? () {});
+    }
     if (widget.page == 'Quotations' || widget.page == 'Invoices') {
       return DocumentsPage(
         kind: widget.page == 'Quotations' ? 'quotation' : 'invoice',

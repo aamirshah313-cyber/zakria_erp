@@ -22,11 +22,11 @@ Requires Inno Setup 6 (`winget install JRSoftware.InnoSetup`). The build script 
 
 The launcher starts the bundled service with the data folder. On an empty folder the service creates `evidence`, `backups`, `logs`, a private service secret and a new database. The application then shows **Set up this computer** to create the first Administrator; staff register afterwards and the Administrator approves them. Setup is available only in desktop mode and closes permanently once any account is active. Default roles match the approved register workflow: Finance Manager prepares/imports/exports, General Manager approves/exports and is the register approver. Cancellation, bank identifiers and audit access remain unassigned until the Administrator grants them.
 
-When a newer version needs database changes, the service copies the database to `backups\before-upgrade-<timestamp>.sqlite3`, verifies the copy's integrity, and only then applies the changes. Startup problems are written to `logs\service.log`, and the launcher shows that path.
+When a newer version needs database changes, the service saves `backups\before-upgrade-<timestamp>.zerp-backup` (restorable from Backup & restore), verifies the copy's integrity, and only then applies the changes. Startup problems are written to `logs\service.log`, and the launcher shows that path.
 
 ## Limits and remaining work
 
 - Unsigned: Windows SmartScreen warns until the setup and application are code-signed with the company's certificate.
-- The existing acceptance data in `storage/v2-desktop` is not moved automatically. Transferring it into `C:\ProgramData\ZakariaERP` needs a reviewed, backed-up copy of the database, service secret and evidence folder.
-- User-facing backup/restore, automatic update delivery and clean-computer acceptance (no Python/Flutter installed) remain outstanding.
+- The existing acceptance data in `storage/v2-desktop` is not moved automatically. Save a backup from the acceptance package and restore it on the installed application's first-run screen; see V2_BACKUP_RESTORE.md.
+- Automatic update delivery and clean-computer acceptance (no Python/Flutter installed) remain outstanding.
 - One Windows session at a time; simultaneous use from several computers is out of V2 scope.

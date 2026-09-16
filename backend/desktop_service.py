@@ -4,18 +4,18 @@ The launcher passes the shared data folder. A missing folder is initialized as a
 new, empty installation (private secret, database schema); the first
 administrator is then created through the application's one-time setup screen.
 An existing database with pending schema changes is backed up and integrity
-checked before it is upgraded. No users, passwords or business records are
-created, copied or changed here.
+checked before it is upgraded. One automatic backup is kept per day (newest
+seven). No users, passwords or business records are created, copied or changed
+here.
 """
 import argparse
-from datetime import datetime
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import secrets
-import sqlite3
 import sys
+import threading
 
 log = logging.getLogger('zakaria.desktop')
 
@@ -38,13 +38,20 @@ def prepare_data(data):
     return database
 
 
-def backup_before_upgrade(database, backups):
-    target = backups / f"before-upgrade-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
-    with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as source, sqlite3.connect(target) as copy:
-        source.backup(copy)
-        if copy.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
-            raise RuntimeError('The pre-upgrade backup failed its integrity check; the database was not upgraded.')
-    return target
+def automatic_backups():
+    """Daily copy at startup, rechecked hourly while the application stays open."""
+    from django.db import connection
+    from core.backups import automatic_backup_if_due
+    while True:
+        try:
+            created = automatic_backup_if_due()
+            if created:
+                log.info('Automatic backup saved: %s', created)
+        except Exception:
+            log.exception('Automatic backup failed')
+        finally:
+            connection.close()
+        threading.Event().wait(3600)
 
 
 def configure_logging(data):
@@ -83,13 +90,15 @@ def main():
     plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
     if plan:
         if existing:
-            backup = backup_before_upgrade(database, data / 'backups')
+            from core.backups import save_local_backup
+            backup, _ = save_local_backup('before-upgrade')
             log.info('Backed up %s before applying %d schema change(s): %s', database.name, len(plan), backup)
         else:
             log.info('Initializing a new database with %d schema change(s).', len(plan))
         call_command('migrate', interactive=False, verbosity=0)
         connection.close()
         log.info('Database schema is current.')
+    threading.Thread(target=automatic_backups, name='automatic-backups', daemon=True).start()
     server = create_server(app, host='127.0.0.1', port=args.port)
     log.info('V2 desktop service ready on loopback using %s', data)
     server.run()

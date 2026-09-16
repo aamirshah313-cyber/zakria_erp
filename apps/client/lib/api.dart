@@ -16,13 +16,14 @@ class Api {
     String path, {
     String method = 'GET',
     Object? body,
+    Duration timeout = const Duration(seconds: 25),
   }) async {
     final req = http.Request(method, Uri.parse('$base$path'));
     req.headers['Content-Type'] = 'application/json';
     if (token != null) req.headers['Authorization'] = 'Bearer $token';
     if (body != null) req.body = jsonEncode(body);
     final response = await http.Response.fromStream(
-      await req.send().timeout(const Duration(seconds: 25)),
+      await req.send().timeout(timeout),
     );
     if (response.statusCode >= 400) {
       String message;
@@ -63,8 +64,9 @@ class Api {
     String path,
     Uint8List bytes,
     String name,
-    Map<String, String> fields,
-  ) async {
+    Map<String, String> fields, {
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
     final request = http.MultipartRequest('POST', Uri.parse('$base$path'));
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
     request.fields.addAll(fields);
@@ -72,15 +74,20 @@ class Api {
       http.MultipartFile.fromBytes('file', bytes, filename: name),
     );
     final response = await http.Response.fromStream(await request.send())
-        .timeout(const Duration(seconds: 60));
+        .timeout(timeout);
     if (response.statusCode >= 400) throw Exception(response.body);
     return jsonDecode(response.body);
   }
 
-  Future<Uint8List> bytes(String path, {Object? body}) async => (await request(
+  Future<Uint8List> bytes(
+    String path, {
+    Object? body,
+    Duration timeout = const Duration(seconds: 25),
+  }) async => (await request(
     path,
     method: body == null ? 'GET' : 'POST',
     body: body,
+    timeout: timeout,
   )).bodyBytes;
 }
 

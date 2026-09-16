@@ -11,9 +11,16 @@ from core.register_positions import Positions
 from core.register_data import RegisterData
 from core.register_master_imports import MasterImport, ImportTemplate
 from core.first_run import FirstRunSetup
+from core.backups import Backups, Restore, SetupRestore
 
 urlpatterns = [
     path('api/setup/', FirstRunSetup.as_view()),
+    path('api/setup/restore/', SetupRestore.as_view()),
+    path('api/setup/restore/<str:step>/', SetupRestore.as_view()),
+    path('api/system/backups/', Backups.as_view()),
+    path('api/system/backups/<str:name>/', Backups.as_view()),
+    path('api/system/restore/', Restore.as_view()),
+    path('api/system/restore/<str:step>/', Restore.as_view()),
     path('api/register/data-management/', RegisterData.as_view()),
     path('api/register/master-import/', MasterImport.as_view()),
     path('api/register/import-template/', ImportTemplate.as_view()),

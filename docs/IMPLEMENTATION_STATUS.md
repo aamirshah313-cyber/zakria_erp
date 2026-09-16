@@ -4,6 +4,12 @@
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
 
+## Backup and restore — 17 September 2026
+
+See V2_BACKUP_RESTORE.md. Backup & restore page (permissions system.backup / system.restore) saves complete .zerp-backup files, optionally AES-256-GCM password-protected; daily automatic copies keep the newest 7; safety copies are made before every restore and schema upgrade. Restore previews the backup's contents, requires the current password, validates checksum/integrity/version, applies upgrades and signs everyone out. New installations can restore from the first-run screen, which is also the route for moving storage/v2-desktop acceptance data into an installed copy.
+
+Verification: 81 backend tests (12 new) and 20 of 21 Flutter tests pass (3 new; the known workspace_admin_test 1100px failure is unchanged). An end-to-end run against a real data folder and the unfrozen service passed: startup automatic copy, encrypted manual backup, wrong-password rejection, preview, restore of changed data, old session rejected (401), safety copy saved, staging cleaned. Installer ZakariaERP-Setup-2.1.0.5.exe (41,395,188 bytes) built from package ZakariaERP-V2-20260917-021100 (2.1.0+5); the frozen archive contains the backup module and cryptography bindings. Backup/restore has not yet been exercised inside the frozen service, because the installed application was running on port 8765. Installations created from the earlier 2.1.0 setup need system.backup and system.restore granted to Administrator in Roles & permissions after upgrading.
+
 ## Windows installer — 17 September 2026
 
 See V2_INSTALLER.md. Inno Setup installer artifacts/installer/ZakariaERP-Setup-2.1.0.exe (39,532,246 bytes) built from package ZakariaERP-V2-20260917-013441 (2.1.0+4). Installs for all users; shared data in C:\ProgramData\ZakariaERP, kept on uninstall. New installations show a one-time Set up this computer screen for the first Administrator; database upgrades are backed up and integrity-checked before migration; startup errors go to logs\service.log.

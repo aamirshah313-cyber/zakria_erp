@@ -5,6 +5,8 @@ from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from .models import AccessSession, AuditEvent
 
 PERMISSIONS = {
+    'system.backup': 'Save and download full data backups',
+    'system.restore': 'Replace all data, accounts and passwords from a backup; signs everyone out',
     'register.delete': 'Remove and restore register drafts; archive and restore setup records',
     'register.bank_details': 'View and maintain sensitive bank account identifiers',
     'register.import': 'Stage and review spreadsheet imports into register drafts',
