@@ -7,7 +7,11 @@ import 'recovery.dart';
 import 'register_data.dart';
 import 'backup.dart';
 
-void main() => runApp(const ZakariaApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await api.loadSavedServer();
+  runApp(const ZakariaApp());
+}
 
 class ZakariaApp extends StatefulWidget {
   const ZakariaApp({super.key});
@@ -87,7 +91,10 @@ class _SignInState extends State<SignIn> {
       name = TextEditingController(),
       confirm = TextEditingController();
   late final server = TextEditingController(text: api.base);
-  bool register = false, busy = false, showServer = false, firstRun = false;
+  bool register = false,
+      busy = false,
+      showServer = Api.remembersServer && !api.serverSaved,
+      firstRun = false;
   String? error;
 
   @override
@@ -148,6 +155,8 @@ class _SignInState extends State<SignIn> {
           'email': email.text,
           'first_name': name.text,
         });
+        // The server answered, so keep its address for the next launch.
+        await api.saveServer();
         if (mounted) {
           notice(context, result['message']);
           setState(() => register = false);
@@ -157,6 +166,7 @@ class _SignInState extends State<SignIn> {
           'username': username.text,
           'password': password.text,
         });
+        await api.saveServer();
         api.token = result['token'];
         api.user = Map<String, dynamic>.from(result['user']);
         widget.onLogin();

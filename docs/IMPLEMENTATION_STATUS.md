@@ -38,7 +38,11 @@ Current priority order. Sections below record what is already delivered; the old
 - Choose how updates reach the client computer (manual installer copy vs. download/update check).
 - Deliver an emergency owner recovery procedure for when every administrator is locked out (V2_DESKTOP_SCOPE.md requires it before release).
 
-### 7. Remaining V2 scope
+### 7. Android access (user decisions required)
+- Decide how phones reach data: a LAN server mode on the Windows PC (needs deliberate network exposure and a firewall rule on trusted Wi-Fi) or an HTTPS-hosted server. Until then the APK cannot sign in.
+- For wider distribution: create a release signing key (backed up outside git), build a release APK/AAB and test on real phones.
+
+### 8. Remaining V2 scope
 - Binary supporting documents on openings and transfers (currently reference/location text only).
 - Full historical migration once the client supplies original workbooks; reconcile the PKR 4,409,259 difference between the main receipts total (59,202,802) and the receipt summary (63,612,061) first.
 - Client answers still open: meaning of "Sent to" and "Paid By", category list, report naming, computer/share arrangement.
@@ -50,11 +54,17 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
 
+## Android test APK — 17 September 2026
+
+Debug-signed APK artifacts/android/ZakariaERP-2.1.0+7-debug.apk (package pk.zakariasons.zakaria_erp, version 2.1.0 build 7, Android 7.0+, arm64-v8a/armeabi-v7a/x86_64) with the register screens (V2_DESKTOP=true), the MZS launcher icon and logo. Phones have no bundled service, so the server address is entered under Connection settings (shown automatically until one is saved) and remembered after a successful sign-in or registration; Windows keeps its packaged service address. Verification: the APK label, version, icon and logo asset were checked inside the package; 22 of 23 Flutter tests pass (2 new server-address tests; known workspace_admin_test failure unchanged).
+
+Limit: no network-reachable V2 server exists yet. The desktop service accepts only loopback connections, so the APK cannot sign in to the Windows installation. Debug builds allow plain HTTP; a release build needs HTTPS and a release signing key kept outside git.
+
 ## MZS branding — 17 September 2026
 
 See branding/README.md. The first redraw changed the logo's M, icon and tagline and was replaced. The logo is now rebuilt from the supplied original (branding/original/MZS.jpg, 204 x 80 px) in the same coordinate space: the three-piece orange M measured from its pixels, Z and S traced with JPEG noise smoothed, the glossy drop mark (black ring, silver band, amber drop, leaf cluster) redrawn against side-by-side overlays, and the tagline "Mohammad Zakaria & Sons" set in Century Gothic fitted to the original's position and width. Assets generated from branding/mzs-logo.svg appear as the application, shortcut and setup icon, installer wizard artwork, the sign-in screen and workspace sidebar logo, and the header of every PDF page (register reports, document reports, quotation/invoice PDFs), Excel report sheets and PNG/JPEG chart exports. CSV exports remain plain.
 
-Verification: 81 backend tests (Excel test checks the four logo rows above each table header and a logo on every sheet) and 20 of 21 Flutter tests pass (known workspace_admin_test failure unchanged); login golden images were regenerated after waiting for the logo to decode. A sample PDF page header and chart export were rendered and inspected. One PyInstaller analysis subprocess crashed (0xC0000409) during packaging and succeeded on retry; numpy, installed for asset tracing, is now excluded from the bundled backend. Installer: ZakariaERP-Setup-2.1.0.7.exe, build 2.1.0+7 (size recorded when the build completes). Note: the logo says "Mohammad", while company records and screens say "Muhammad".
+Verification: 81 backend tests (Excel test checks the four logo rows above each table header and a logo on every sheet) and 20 of 21 Flutter tests pass (known workspace_admin_test failure unchanged); login golden images were regenerated after waiting for the logo to decode. A sample PDF page header and chart export were rendered and inspected. One PyInstaller analysis subprocess crashed (0xC0000409) during packaging and succeeded on retry; numpy, installed for asset tracing, is now excluded from the bundled backend. Installer: artifacts/installer/ZakariaERP-Setup-2.1.0.7.exe (41,673,281 bytes) from package ZakariaERP-V2-20260917-041523 (2.1.0+7); icons extracted from the built application and setup executables show the rebuilt drop mark, and the bundled backend contains no numpy. Note: the logo says "Mohammad", while company records and screens say "Muhammad".
 
 ## Backup and restore — 17 September 2026
 

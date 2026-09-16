@@ -65,6 +65,13 @@ def main():
     frames[-1].save(icon, format='ICO', sizes=[(s, s) for s in sizes], append_images=frames[:-1])
     print(icon.relative_to(ROOT), sizes)
 
+    # Android launcher icons: mark on a white rounded square for dark home screens.
+    for density, size in [('mdpi', 48), ('hdpi', 72), ('xhdpi', 96), ('xxhdpi', 144), ('xxxhdpi', 192)]:
+        tile = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+                '<rect x="2" y="2" width="96" height="96" rx="22" fill="#FFFFFF"/>'
+                '<svg x="9" y="9" width="82" height="82" viewBox="-4.8 10.9 59.6 59.6">' + DEFS + MARK + '</svg></svg>')
+        save(render(tile, size), 'apps', 'client', 'android', 'app', 'src', 'main', 'res', f'mipmap-{density}', 'ic_launcher.png')
+
     for scale in (1, 2):
         save(wizard_side(scale), 'installer', f'wizard-image-{scale}x.png')
         small = Image.new('RGBA', (55 * scale, 55 * scale), (255, 255, 255, 0))

@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'device.dart';
 
 class Api {
   String base = const String.fromEnvironment(
@@ -10,6 +14,30 @@ class Api {
   );
   String? token;
   Map<String, dynamic> user = {};
+
+  /// Phones have no bundled service: the server address is entered under
+  /// Connection settings and remembered on the device.
+  static bool get remembersServer => rememberServerOverride ?? isAndroidDevice;
+  @visibleForTesting
+  static bool? rememberServerOverride;
+  static const _serverKey = 'api_server';
+  bool serverSaved = false;
+
+  Future<void> loadSavedServer() async {
+    if (!remembersServer) return;
+    final saved = (await SharedPreferences.getInstance()).getString(_serverKey);
+    if (saved != null && saved.isNotEmpty) {
+      base = saved;
+      serverSaved = true;
+    }
+  }
+
+  Future<void> saveServer() async {
+    if (!remembersServer) return;
+    await (await SharedPreferences.getInstance()).setString(_serverKey, base);
+    serverSaved = true;
+  }
+
   bool can(String permission) =>
       (user['permissions'] as List? ?? []).contains(permission);
   Future<http.Response> request(

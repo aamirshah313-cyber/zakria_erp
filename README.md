@@ -41,8 +41,18 @@ The compiled browser pilot is also available in `apps/client/build/web`. Run `sc
 
 ## Android pilot
 
+V2 register test APK (debug-signed, MZS launcher icon, register screens):
+
 ```powershell
 cd apps/client
+flutter build apk --debug --dart-define=V2_DESKTOP=true --build-name=2.1.0 --build-number=7
+```
+
+Copy of the latest build: `artifacts/android/ZakariaERP-2.1.0+7-debug.apk`. The phone has no bundled service: open **Connection settings** on the sign-in screen, enter the server's API address, and sign in. After a successful sign-in the address is remembered on the phone. The Windows desktop service listens only on its own computer (127.0.0.1), so a phone cannot use it until a network-reachable server is deliberately set up.
+
+Earlier pilot build for the emulator:
+
+```powershell
 flutter build apk --debug --dart-define=API_URL=http://10.0.2.2:8000/api
 ```
 

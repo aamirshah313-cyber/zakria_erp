@@ -25,6 +25,7 @@ On Windows (Century Gothic is a Windows system font):
 - `branding/mzs-logo.png`, `branding/mzs-mark.png` — high-resolution masters.
 - `apps/client/assets/branding/` — sign-in screen and sidebar logo.
 - `apps/client/windows/runner/resources/app_icon.ico` — application, taskbar, shortcut and setup icon (16–256 px, drop mark).
+- `apps/client/android/app/src/main/res/mipmap-*/ic_launcher.png` — Android launcher icon.
 - `installer/wizard-image-*.png`, `installer/wizard-small-*.png` — installer wizard artwork.
 - `backend/resources/branding/mzs-logo.png` — header of PDF, Excel and PNG/JPEG reports and quotation/invoice PDFs. CSV exports carry no images.
 
