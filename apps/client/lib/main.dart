@@ -237,12 +237,8 @@ class _SignInState extends State<SignIn> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.business_outlined,
-                        size: 38,
-                        color: teal,
-                      ),
-                      const SizedBox(height: 24),
+                      const BrandLogo(height: 84),
+                      const SizedBox(height: 28),
                       Text(
                         firstRun
                             ? 'Set up this computer'
@@ -480,20 +476,18 @@ class _WorkspaceState extends State<Workspace> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 28, 20, 6),
-            child: Text(
-              'ZAKARIA & SONS',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                letterSpacing: 1,
-                fontWeight: FontWeight.w700,
-              ),
+          Container(
+            key: const Key('sidebar-logo'),
+            margin: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
             ),
+            child: const Center(child: BrandLogo(height: 56)),
           ),
           const Padding(
-            padding: EdgeInsets.fromLTRB(24, 0, 20, 24),
+            padding: EdgeInsets.fromLTRB(24, 0, 20, 20),
             child: Text(
               'BUSINESS WORKSPACE',
               style: TextStyle(

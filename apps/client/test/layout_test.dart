@@ -40,6 +40,12 @@ void main() {
       await tester.pumpWidget(
         const RepaintBoundary(key: key, child: ZakariaApp()),
       );
+      // Decode the MZS logo before capturing; image loading is asynchronous.
+      await tester.runAsync(() async {
+        for (final element in find.byType(Image).evaluate()) {
+          await precacheImage((element.widget as Image).image, element);
+        }
+      });
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text('Sign in'), findsOneWidget);

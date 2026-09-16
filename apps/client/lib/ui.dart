@@ -4,6 +4,20 @@ const ink = Color(0xFF192230),
     teal = Color(0xFF2563EB),
     muted = Color(0xFF697586);
 
+/// MZS logo, generated from branding/mzs-logo.svg.
+class BrandLogo extends StatelessWidget {
+  final double height;
+  const BrandLogo({super.key, this.height = 64});
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'assets/branding/mzs-logo.png',
+    height: height,
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+    semanticLabel: 'Mohammad Zakaria & Sons',
+  );
+}
+
 Widget calendarField(
   BuildContext context,
   String label,

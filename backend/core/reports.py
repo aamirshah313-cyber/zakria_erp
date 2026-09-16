@@ -76,7 +76,8 @@ def pdf_table(title, headers, rows, options, footer=''):
     if options.get('orientation') == 'landscape':
         size = landscape(size)
     buf = io.BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=size, rightMargin=32, leftMargin=32, topMargin=36, bottomMargin=45)
+    from .branding import PDF_HEADER_SPACE, draw_pdf_logo
+    doc = SimpleDocTemplate(buf, pagesize=size, rightMargin=32, leftMargin=32, topMargin=PDF_HEADER_SPACE + 16, bottomMargin=45)
     styles = getSampleStyleSheet()
     styles['BodyText'].fontSize = 8
     styles['BodyText'].leading = 11
@@ -94,8 +95,7 @@ def pdf_table(title, headers, rows, options, footer=''):
     if footer:
         story += [Spacer(1, 16), p(footer)]
     def page(canvas, document):
-        canvas.setStrokeColor(colors.HexColor(accent))
-        canvas.line(32, size[1] - 20, size[0] - 32, size[1] - 20)
+        draw_pdf_logo(canvas, size[0], size[1], 32, colors.HexColor(accent))
         canvas.setFont('Helvetica', 8)
         if options.get('draft'):
             canvas.drawString(32, 22, 'DRAFT - NOT ISSUED')
@@ -123,22 +123,24 @@ class Reports(APIView):
         elif output == 'xlsx':
             from openpyxl import Workbook
             from openpyxl.styles import Font, PatternFill
+            from .branding import add_xlsx_banner
             wb = Workbook()
             ws = wb.active
             ws.title = 'Report'
+            first = add_xlsx_banner(ws)
             ws.append([FIELDS[c] for c in columns])
             for row in rows:
                 ws.append([safe_cell(row[c]) for c in columns])
-            ws.freeze_panes = 'A2'
-            ws.auto_filter.ref = ws.dimensions
-            for cell in ws[1]:
+            from openpyxl.utils import get_column_letter
+            ws.freeze_panes = f'A{first + 1}'
+            ws.auto_filter.ref = f'A{first}:{get_column_letter(len(columns))}{ws.max_row}'
+            for cell in ws[first]:
                 cell.font = Font(bold=True, color='FFFFFF')
                 cell.fill = PatternFill('solid', fgColor='176B61')
             for i, c in enumerate(columns, 1):
-                from openpyxl.utils import get_column_letter
                 ws.column_dimensions[get_column_letter(i)].width = 24
                 if c in ['subtotal', 'tax_total', 'total']:
-                    for row in ws.iter_rows(min_row=2, min_col=i, max_col=i):
+                    for row in ws.iter_rows(min_row=first + 1, min_col=i, max_col=i):
                         row[0].number_format = '#,##0.00'
             stream = io.BytesIO()
             wb.save(stream)

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 204 80" width="2040" height="800">
+  <title>Mohammad Zakaria &amp; Sons</title>
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A9ABAF"/><stop offset="0.2" stop-color="#3A3B3E"/><stop offset="0.32" stop-color="#0E0E10"/><stop offset="1" stop-color="#000000"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#B8BCC2"/><stop offset="0.3" stop-color="#E6E8EB"/><stop offset="0.52" stop-color="#FFFFFF"/>
+      <stop offset="0.76" stop-color="#D2D4D7"/><stop offset="1" stop-color="#8E9094"/>
+    </linearGradient>
+    <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#58595C"/><stop offset="0.35" stop-color="#2A2A2D"/><stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E88A2E"/><stop offset="0.3" stop-color="#FDBB2F"/><stop offset="0.55" stop-color="#F79A26"/>
+      <stop offset="0.8" stop-color="#E35F2A"/><stop offset="1" stop-color="#CF4629"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.5">
+      <stop offset="0" stop-color="#FFE45C" stop-opacity="0.9"/><stop offset="1" stop-color="#FFE45C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="leaf" gradientUnits="userSpaceOnUse" x1="30" y1="36" x2="44" y2="14">
+      <stop offset="0" stop-color="#1B6F30"/><stop offset="0.5" stop-color="#2E8F3F"/><stop offset="1" stop-color="#9FC95A"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0842C"/><stop offset="1" stop-color="#E9721F"/>
+    </linearGradient>
+    <clipPath id="band"><path d="M24.4 20.4C23.2 26.6 19.6 30.8 15.2 35.8C9.2 41.8 5.2 47.4 5.5 53.8C5.4 60.6 12.2 64.6 22.7 64.6C33.2 64.6 40.0 60.6 39.9 53.8C40.2 47.4 36.4 41.8 30.4 35.8C28.0 33.2 26.4 30.6 25.6 27.8C25.0 25.6 24.6 23.2 24.4 20.4Z"/></clipPath>
+  </defs>
+  <g id="mark">
+    <path d="M24.6 13.6C24.2 21.5 19.5 27.5 13.8 33.8C6.0 40.4 2.4 46.4 3.0 54.0C2.8 62.8 11.4 69.0 22.7 69.0C34.0 69.0 42.8 62.8 42.6 54.0C43.2 46.4 39.6 40.4 31.8 33.8C28.8 30.4 26.8 27.4 26.1 24.6C25.4 21.6 24.9 18.0 24.6 13.6Z" fill="url(#ring)"/>
+    <path d="M24.4 20.4C23.2 26.6 19.6 30.8 15.2 35.8C9.2 41.8 5.2 47.4 5.5 53.8C5.4 60.6 12.2 64.6 22.7 64.6C33.2 64.6 40.0 60.6 39.9 53.8C40.2 47.4 36.4 41.8 30.4 35.8C28.0 33.2 26.4 30.6 25.6 27.8C25.0 25.6 24.6 23.2 24.4 20.4Z" fill="url(#silver)"/>
+    <path d="M3.0 50.8C7.0 52.4 11.2 53.0 15.0 53.0C21.0 52.6 26.0 50.6 31.0 49.0C34.6 47.8 38.2 47.2 42.6 47.0L42.6 68.0L3.0 68.0Z" fill="url(#deep)" clip-path="url(#band)"/>
+    <path d="M5.8 54.4C9.6 55.6 12.6 55.8 14.6 55.6" fill="none" stroke="#A6A7AA" stroke-opacity="0.35" stroke-width="0.7" stroke-linecap="round" clip-path="url(#band)"/>
+    <path d="M24.5 21.6C24.7 25.6 24.4 28.8 24.1 31.0" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M24.0 31.0C22.6 35.8 18.0 40.6 15.4 45.8C13.7 49.2 13.3 52.4 13.9 55.2C14.8 59.2 18.6 61.2 23.0 61.2C27.4 61.2 31.3 59.2 32.1 55.2C32.7 52.3 32.2 49.2 30.5 45.8C28.0 40.6 25.3 35.8 24.0 31.0Z" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M24.0 31.0C22.6 35.8 18.0 40.6 15.4 45.8C13.7 49.2 13.3 52.4 13.9 55.2C14.8 59.2 18.6 61.2 23.0 61.2C27.4 61.2 31.3 59.2 32.1 55.2C32.7 52.3 32.2 49.2 30.5 45.8C28.0 40.6 25.3 35.8 24.0 31.0Z" fill="url(#amber)"/>
+    <path d="M24.0 31.0C22.6 35.8 18.0 40.6 15.4 45.8C13.7 49.2 13.3 52.4 13.9 55.2C14.8 59.2 18.6 61.2 23.0 61.2C27.4 61.2 31.3 59.2 32.1 55.2C32.7 52.3 32.2 49.2 30.5 45.8C28.0 40.6 25.3 35.8 24.0 31.0Z" fill="none" stroke="#9C3F1B" stroke-opacity="0.5" stroke-width="0.6"/>
+    <ellipse cx="23.2" cy="43.2" rx="4.2" ry="5.8" fill="url(#glow)"/>
+    <path d="M29.8 51.6C30.6 53.2 30.6 55.2 29.8 56.8" fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="23.0" cy="59.6" rx="2.4" ry="0.6" fill="#FFD2C2" fill-opacity="0.7"/>
+    <path d="M33.20 26.00C37.32 22.10 34.31 15.87 29.60 13.40C26.91 17.99 27.64 24.86 33.20 26.00Z" fill="url(#leaf)"/><path d="M34.00 26.40C39.78 28.93 45.00 23.12 45.60 17.20C39.70 16.44 32.86 20.19 34.00 26.40Z" fill="url(#leaf)"/><path d="M34.40 28.00C36.38 32.74 42.94 32.42 46.80 29.40C43.71 25.60 37.38 23.82 34.40 28.00Z" fill="url(#leaf)"/><path d="M34.20 28.60C32.23 33.18 36.89 37.54 41.60 38.20C42.16 33.48 39.13 27.86 34.20 28.60Z" fill="url(#leaf)"/>
+    <ellipse cx="31.04" cy="18.44" rx="1.7" ry="0.5" transform="rotate(-105.9 31.04 18.44)" fill="#E9F5C8" fill-opacity="0.45"/><ellipse cx="40.96" cy="20.88" rx="1.7" ry="0.5" transform="rotate(-38.4 40.96 20.88)" fill="#E9F5C8" fill-opacity="0.45"/><ellipse cx="41.84" cy="28.84" rx="1.7" ry="0.5" transform="rotate(6.4 41.84 28.84)" fill="#E9F5C8" fill-opacity="0.45"/><ellipse cx="38.64" cy="34.36" rx="1.7" ry="0.5" transform="rotate(52.4 38.64 34.36)" fill="#E9F5C8" fill-opacity="0.45"/>
+  </g>
+  <g id="wordmark">
+    <path d="M60.3 9.3L84.6 9.3L72.0 38.0Z M54.6 34.2L68.5 65.6L49.6 65.6Z M89.4 34.2L93.6 65.6L75.0 65.6Z" fill="url(#orange)"/>
+    <path d="M110.52 64.85 L109.48 63.62 L106.84 46.63 L121.74 23.33 L121.81 22.43 L103.18 21.87 L102.41 20.97 L101.02 11.12 L101.44 10.69 L147.70 10.58 L147.80 11.84 L120.72 52.53 L121.17 53.30 L144.32 53.53 L145.04 54.22 L144.92 64.39 L144.47 64.75ZM170.05 67.12C164.12 66.76 158.67 64.42 154.70 60.54C151.98 57.87 150.44 55.05 149.80 51.53C149.41 49.38 149.70 48.35 150.83 47.96C151.33 47.78 162.31 47.78 162.94 47.96C163.73 48.18 164.05 48.47 164.84 49.69C166.06 51.56 167.66 52.60 170.01 53.06C174.36 53.89 178.97 51.43 178.97 48.28C178.96 46.05 177.38 45.20 169.72 43.29C159.62 40.77 155.08 38.34 152.08 33.85C149.46 29.94 148.82 23.61 150.56 18.88C152.47 13.69 158.07 8.94 164.34 7.20C168.75 5.97 174.28 5.89 178.57 6.99C186.13 8.94 192.04 14.25 193.66 20.53C194.44 23.56 194.23 24.98 192.93 25.42C192.51 25.56 182.21 25.63 181.27 25.50C180.22 25.35 179.79 25.03 178.97 23.78C177.88 22.12 176.87 21.31 175.11 20.69C173.73 20.21 171.64 20.06 170.19 20.33C165.98 21.12 163.46 24.58 165.46 26.79C166.34 27.76 168.50 28.60 172.81 29.65C184.57 32.49 189.54 35.29 192.36 40.62C194.66 44.97 194.78 51.38 192.66 55.72C189.01 63.16 179.98 67.72 170.05 67.12Z" fill="#000000"/>
+  </g>
+  <g id="tagline" transform="translate(48.5 77.6) scale(1.05 1)">
+    <text font-family="Century Gothic" font-size="11" letter-spacing="-0.45" fill="#1A1A1A" stroke="#1A1A1A" stroke-width="0.3" stroke-linejoin="round">Mohammad Zakaria &amp; Sons</text>
+  </g>
+</svg>

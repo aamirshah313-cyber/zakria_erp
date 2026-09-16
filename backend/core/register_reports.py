@@ -216,18 +216,21 @@ def xlsx_bytes(report):
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment
     from openpyxl.chart import BarChart, Reference
-    from openpyxl.worksheet.pagebreak import Break
+    from openpyxl.utils import get_column_letter
+    from .branding import add_xlsx_banner
     book = Workbook()
     info = book.active
     info.title = 'Report details'
+    first = add_xlsx_banner(info)
     for key,value in metadata(report):
         info.append([key,safe_text(value)])
     info.column_dimensions['A'].width, info.column_dimensions['B'].width = 25, 110
-    for row in info:
+    for row in info.iter_rows(min_row=first):
         row[1].alignment = Alignment(wrap_text=True,vertical='top')
         info.row_dimensions[row[0].row].height = 44 if len(str(row[1].value)) > 100 else 25
     columns,labels,rows = table_data(report)
     sheet = book.create_sheet('Report rows')
+    add_xlsx_banner(sheet)
     sheet.append([labels[k] for k in columns])
     for row in rows:
         cells = []
@@ -242,18 +245,17 @@ def xlsx_bytes(report):
             cells.append(value)
         sheet.append(cells)
     for column,key in enumerate(columns,1):
-        from openpyxl.utils import get_column_letter
         sheet.column_dimensions[get_column_letter(column)].width = 20 if key in NUMERIC or key == 'date' else 30
-        for cells in sheet.iter_rows(min_row=2,min_col=column,max_col=column):
+        for cells in sheet.iter_rows(min_row=first+1,min_col=column,max_col=column):
             cell = cells[0]
             if key in NUMERIC:
                 cell.number_format = '#,##0' if key in ['count','evidence'] else '#,##0.00;[Red](#,##0.00)'
             elif key == 'date':
                 cell.number_format = 'dd-mmm-yyyy'
             cell.alignment = Alignment(vertical='top',wrap_text=True)
-    sheet.freeze_panes = 'A2'
-    sheet.auto_filter.ref = sheet.dimensions
-    sheet.print_title_rows = '1:1'
+    sheet.freeze_panes = f'A{first+1}'
+    sheet.auto_filter.ref = f'A{first}:{get_column_letter(len(columns))}{sheet.max_row}'
+    sheet.print_title_rows = f'{first}:{first}'
     sheet.sheet_properties.pageSetUpPr.fitToPage = True
     sheet.page_setup.orientation = report['definition']['orientation']
     sheet.page_setup.paperSize = sheet.PAPERSIZE_A3 if report['definition']['paper'] == 'A3' else sheet.PAPERSIZE_A4
@@ -263,33 +265,34 @@ def xlsx_bytes(report):
     sheet.oddFooter.left.text = report['definition']['footer'].replace('&','&&')
     sheet.oddFooter.right.text = 'Page &P of &N'
     summary = book.create_sheet('Grouped summary')
+    add_xlsx_banner(summary)
     summary.append(list(SUMMARY_FIELDS.values()))
     for row in report['summary']:
         summary.append([safe_text(row['label']),row['count'],*[Decimal(row[k]) for k in ['receipt','payment','transfer_in','transfer_out','net']]])
     summary.column_dimensions['A'].width = 35
     for key in ['B','C','D','E','F','G']:
         summary.column_dimensions[key].width = 23
-    for row in summary.iter_rows(min_row=2,min_col=3,max_col=7):
+    for row in summary.iter_rows(min_row=first+1,min_col=3,max_col=7):
         for cell in row:
             cell.number_format = '#,##0.00;[Red](#,##0.00)'
-    summary.freeze_panes = 'A2'
+    summary.freeze_panes = f'A{first+1}'
     if report['summary'] and report['definition']['chart']:
         chart = BarChart()
         chart.title = 'Receipts and payments (PKR)'
-        chart.add_data(Reference(summary,min_col=3,max_col=4,min_row=1,max_row=summary.max_row),titles_from_data=True)
-        chart.set_categories(Reference(summary,min_col=1,min_row=2,max_row=summary.max_row))
+        chart.add_data(Reference(summary,min_col=3,max_col=4,min_row=first,max_row=summary.max_row),titles_from_data=True)
+        chart.set_categories(Reference(summary,min_col=1,min_row=first+1,max_row=summary.max_row))
         chart.width,chart.height = 24,12
         chart.series[0].graphicalProperties.solidFill = report['definition']['accent'][1:]
         chart.series[1].graphicalProperties.solidFill = '94A3B8'
-        summary.add_chart(chart,'I2')
+        summary.add_chart(chart,f'I{first+1}')
     accent = report['definition']['accent'][1:]
     brightness = sum(int(accent[i:i+2],16)*w for i,w in [(0,.299),(2,.587),(4,.114)])
     for ws in [sheet,summary]:
-        for cell in ws[1]:
+        for cell in ws[first]:
             cell.fill = PatternFill('solid',fgColor=accent)
             cell.font = Font(bold=True,color='000000' if brightness > 150 else 'FFFFFF')
             cell.alignment = Alignment(wrap_text=True)
-        ws.row_dimensions[1].height = 32
+        ws.row_dimensions[first].height = 32
     buf = io.BytesIO()
     book.save(buf)
     return buf.getvalue()
@@ -314,7 +317,8 @@ def pdf_bytes(report):
     if len(rows) > 2000:
         raise ValidationError('PDF detail is limited to 2,000 rows. Narrow the period, choose grouped summary, or export Excel.')
     out = io.BytesIO()
-    doc = SimpleDocTemplate(out,pagesize=size,leftMargin=32,rightMargin=32,topMargin=32,bottomMargin=48,title=d['title'],author=report['company']['name'])
+    from .branding import PDF_HEADER_SPACE, draw_pdf_logo
+    doc = SimpleDocTemplate(out,pagesize=size,leftMargin=32,rightMargin=32,topMargin=PDF_HEADER_SPACE+14,bottomMargin=48,title=d['title'],author=report['company']['name'])
     body = ParagraphStyle('Body',fontName='Helvetica',fontSize=8,leading=11,spaceAfter=5,wordWrap='CJK')
     title = ParagraphStyle('Title',parent=body,fontSize=18,leading=22,spaceAfter=12)
     small = ParagraphStyle('Small',parent=body,fontSize=7,leading=10,textColor=colors.HexColor('#475569'))
@@ -354,8 +358,7 @@ def pdf_bytes(report):
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),accent),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#F1F5F9')]),('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),6),('RIGHTPADDING',(0,0),(-1,-1),6),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
     story.append(table)
     def page(canvas,document):
-        canvas.setStrokeColor(accent)
-        canvas.line(32,size[1]-18,size[0]-32,size[1]-18)
+        draw_pdf_logo(canvas,size[0],size[1],32,accent)
         canvas.setFont('Helvetica',7)
         footer = p(d['footer'],small)
         _,height = footer.wrap(available-65,30)
@@ -387,7 +390,10 @@ def image_bytes(report,output):
         return lines
     header = [(report['company']['name'],25),(report['definition']['title'],28),(f'{report["period_label"]}: {report["from"] or "Start of history"} to {report["to"] or "End of history"}',18),(report['scope'],18),(f'Generated {report["generated"]} for {report["prepared_for"]}',16),(report['definition']['header'],18),('Receipts (report colour) / payments (grey) in PKR',19)]
     heading_lines = [(line,size) for text,size in header for line in wrap(text,size)]
-    graph_top = 65+sum(size+10 for _,size in heading_lines)
+    from .branding import logo_image
+    logo = logo_image(96)
+    heading_top = 40+logo.height+20
+    graph_top = heading_top+30+sum(size+10 for _,size in heading_lines)
     groups = chart_groups(report)
     footer_top = graph_top+max(len(groups),1)*69+25
     footers = [('Top eight groups plus Other groups; full group labels are in the tabular report.',17),(f'Total receipts PKR {Decimal(report["receipts"]):,.2f} | Payments {Decimal(report["payments"]):,.2f}',20),(report['basis'],16),(report['definition']['footer'],16)]
@@ -395,7 +401,9 @@ def image_bytes(report,output):
     image = Image.new('RGB',(1600,footer_top+sum(size+10 for _,size in footer_lines)+35),'white')
     draw = ImageDraw.Draw(image)
     draw.rectangle((0,0,1600,10),fill=report['definition']['accent'])
-    y = 35
+    image.paste(logo,(55,40),logo)
+    draw.line((55,heading_top-8,1545,heading_top-8),fill=report['definition']['accent'],width=2)
+    y = heading_top
     for line,size in heading_lines:
         draw.text((55,y),line,font=font(size),fill='#172033')
         y += size+10

@@ -5,7 +5,8 @@
 Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
 
 ### 1. Verify the latest release on this computer (user and developer)
-- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.5.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts.
+- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.7.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts.
+- Check the MZS logo in the installer wizard, the Start menu/taskbar icon, the sign-in screen, the workspace sidebar, and a PDF, Excel and PNG report header.
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
 - Close the application and confirm zakaria_service.exe stops with it.
@@ -24,13 +25,20 @@ Current priority order. Sections below record what is already delivered; the old
 - Fix the failing workspace_admin_test at 1100px (sidebar ListTile needs a Material ancestor); keep golden images unchanged.
 - Show startup progress during first run and upgrades; the window currently appears only after the service is ready.
 - Streamed backup/restore for large databases (currently in memory, 2 GB limit).
+- List the branding tools (resvg-py, potracer, numpy, PyMuPDF) in a separate developer requirements file; they are installed in .venv for asset generation only, and numpy is explicitly excluded from the bundled backend.
+- Exercise backup/restore inside the frozen service once port 8765 is free.
 
-### 5. Distribution (user decisions required)
+### 5. Branding decisions (user)
+- Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
+- Confirm the company spelling: the logo says "Mohammad", company records and screens say "Muhammad". Align whichever is wrong.
+- If a higher-resolution or vector original is found later, replace branding/original/MZS.jpg and rerun the branding scripts.
+
+### 6. Distribution (user decisions required)
 - Obtain a code-signing certificate so SmartScreen does not warn; sign setup and application executables.
 - Choose how updates reach the client computer (manual installer copy vs. download/update check).
 - Deliver an emergency owner recovery procedure for when every administrator is locked out (V2_DESKTOP_SCOPE.md requires it before release).
 
-### 6. Remaining V2 scope
+### 7. Remaining V2 scope
 - Binary supporting documents on openings and transfers (currently reference/location text only).
 - Full historical migration once the client supplies original workbooks; reconcile the PKR 4,409,259 difference between the main receipts total (59,202,802) and the receipt summary (63,612,061) first.
 - Client answers still open: meaning of "Sent to" and "Paid By", category list, report naming, computer/share arrangement.
@@ -41,6 +49,12 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 ## V2.1 — current increment
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
+
+## MZS branding — 17 September 2026
+
+See branding/README.md. The first redraw changed the logo's M, icon and tagline and was replaced. The logo is now rebuilt from the supplied original (branding/original/MZS.jpg, 204 x 80 px) in the same coordinate space: the three-piece orange M measured from its pixels, Z and S traced with JPEG noise smoothed, the glossy drop mark (black ring, silver band, amber drop, leaf cluster) redrawn against side-by-side overlays, and the tagline "Mohammad Zakaria & Sons" set in Century Gothic fitted to the original's position and width. Assets generated from branding/mzs-logo.svg appear as the application, shortcut and setup icon, installer wizard artwork, the sign-in screen and workspace sidebar logo, and the header of every PDF page (register reports, document reports, quotation/invoice PDFs), Excel report sheets and PNG/JPEG chart exports. CSV exports remain plain.
+
+Verification: 81 backend tests (Excel test checks the four logo rows above each table header and a logo on every sheet) and 20 of 21 Flutter tests pass (known workspace_admin_test failure unchanged); login golden images were regenerated after waiting for the logo to decode. A sample PDF page header and chart export were rendered and inspected. One PyInstaller analysis subprocess crashed (0xC0000409) during packaging and succeeded on retry; numpy, installed for asset tracing, is now excluded from the bundled backend. Installer: ZakariaERP-Setup-2.1.0.7.exe, build 2.1.0+7 (size recorded when the build completes). Note: the logo says "Mohammad", while company records and screens say "Muhammad".
 
 ## Backup and restore — 17 September 2026
 

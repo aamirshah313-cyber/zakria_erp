@@ -133,8 +133,10 @@ class RegisterExtensionTests(TestCase):
             if fmt == 'xlsx':
                 from openpyxl import load_workbook
                 book=load_workbook(BytesIO(response.content))
-                self.assertEqual(book['Report rows']['F2'].value,100.1)
-                self.assertEqual(book['Report rows']['C2'].data_type,'s')
+                self.assertEqual(book['Report rows']['F6'].value,100.1)
+                self.assertEqual(book['Report rows'].freeze_panes,'A6')
+                self.assertTrue(all(len(book[name]._images)==1 for name in book.sheetnames))
+                self.assertEqual(book['Report rows']['C6'].data_type,'s')
                 self.assertEqual(book['Report rows'].page_setup.orientation,'landscape')
         saved=self.client.post('/api/register/report-templates/',{'name':'Personal report','definition':{'columns':['date','payment']}},format='json')
         self.assertEqual(saved.status_code,200)
