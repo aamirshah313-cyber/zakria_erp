@@ -479,118 +479,122 @@ class _WorkspaceState extends State<Workspace> {
     }
   }
 
-  Widget navigation(bool compact) => Container(
-    width: 244,
+  // Material (not a coloured box) so navigation tiles can paint their
+  // selection and ink effects.
+  Widget navigation(bool compact) => Material(
     color: ink,
-    child: SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            key: const Key('sidebar-logo'),
-            margin: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+    child: SizedBox(
+      width: 244,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              key: const Key('sidebar-logo'),
+              margin: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Center(child: BrandLogo(height: 56)),
             ),
-            child: const Center(child: BrandLogo(height: 56)),
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(24, 0, 20, 20),
-            child: Text(
-              'BUSINESS WORKSPACE',
-              style: TextStyle(
-                color: Color(0xFF93B9FF),
-                fontSize: 10,
-                letterSpacing: 1.8,
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 0, 20, 20),
+              child: Text(
+                'BUSINESS WORKSPACE',
+                style: TextStyle(
+                  color: Color(0xFF93B9FF),
+                  fontSize: 10,
+                  letterSpacing: 1.8,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Scrollbar(
-              controller: navigationScroll,
-              thumbVisibility: true,
-              child: ListView(
+            Expanded(
+              child: Scrollbar(
                 controller: navigationScroll,
-                children: nav
-                    .map(
-                      (n) => Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
-                        ),
-                        child: ListTile(
-                          dense: true,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                thumbVisibility: true,
+                child: ListView(
+                  controller: navigationScroll,
+                  children: nav
+                      .map(
+                        (n) => Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 2,
                           ),
-                          selected: page == n.$1,
-                          selectedTileColor: const Color(0xFF303C4E),
-                          leading: Icon(
-                            n.$2,
-                            size: 20,
-                            color: page == n.$1
-                                ? const Color(0xFF93B9FF)
-                                : const Color(0xFF9EAFB3),
-                          ),
-                          title: Text(
-                            n.$1,
-                            style: TextStyle(
-                              color: page == n.$1
-                                  ? Colors.white
-                                  : const Color(0xFFC4D0D1),
-                              fontSize: 13,
+                          child: ListTile(
+                            dense: true,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
+                            selected: page == n.$1,
+                            selectedTileColor: const Color(0xFF303C4E),
+                            leading: Icon(
+                              n.$2,
+                              size: 20,
+                              color: page == n.$1
+                                  ? const Color(0xFF93B9FF)
+                                  : const Color(0xFF9EAFB3),
+                            ),
+                            title: Text(
+                              n.$1,
+                              style: TextStyle(
+                                color: page == n.$1
+                                    ? Colors.white
+                                    : const Color(0xFFC4D0D1),
+                                fontSize: 13,
+                              ),
+                            ),
+                            onTap: () {
+                              setState(() {
+                                page = n.$1;
+                                revision++;
+                              });
+                              if (compact) Navigator.pop(context);
+                            },
                           ),
-                          onTap: () {
-                            setState(() {
-                              page = n.$1;
-                              revision++;
-                            });
-                            if (compact) Navigator.pop(context);
-                          },
                         ),
-                      ),
-                    )
-                    .toList(),
+                      )
+                      .toList(),
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${api.user['username']}',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                Text(
-                  '${api.user['role_name']}',
-                  style: const TextStyle(
-                    color: Color(0xFF9EAFB3),
-                    fontSize: 12,
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${api.user['username']}',
+                    style: const TextStyle(color: Colors.white),
                   ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    try {
-                      await api.send('/auth/logout/', {});
-                    } catch (_) {}
-                    api.token = null;
-                    api.user = {};
-                    widget.onLogout();
-                  },
-                  child: const Text(
-                    'Sign out',
-                    style: TextStyle(color: Color(0xFF93B9FF)),
+                  Text(
+                    '${api.user['role_name']}',
+                    style: const TextStyle(
+                      color: Color(0xFF9EAFB3),
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-              ],
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await api.send('/auth/logout/', {});
+                      } catch (_) {}
+                      api.token = null;
+                      api.user = {};
+                      widget.onLogout();
+                    },
+                    child: const Text(
+                      'Sign out',
+                      style: TextStyle(color: Color(0xFF93B9FF)),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );

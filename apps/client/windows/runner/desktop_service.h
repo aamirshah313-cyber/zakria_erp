@@ -7,6 +7,8 @@
 #include <fstream>
 #include <string>
 
+#include "startup_splash.h"
+
 // Lifetime belongs to this native window; do not reuse or terminate a service
 // belonging to another application. A job cleans up the owned child on exit.
 class DesktopService {
@@ -78,11 +80,15 @@ class DesktopService {
     ResumeThread(process.hThread);
     CloseHandle(process.hThread);
     // First run and upgrades create or back up the database before listening.
+    // Quick starts finish before the splash appears; slower ones show progress.
+    StartupSplash splash;
     for (int attempt = 0; attempt < 600; ++attempt) {
-      if (WaitForSingleObject(process_, 0) == WAIT_OBJECT_0) break;
+      if (attempt == 4) splash.Show();
+      splash.Pump();
       if (Healthy()) return true;
-      Sleep(300);
+      if (MsgWaitForMultipleObjects(1, &process_, FALSE, 300, QS_ALLINPUT) == WAIT_OBJECT_0) break;
     }
+    splash.Close();
     const std::wstring message = L"The desktop service could not start. Details are in:\n" + log_;
     return Fail(message.c_str());
   }

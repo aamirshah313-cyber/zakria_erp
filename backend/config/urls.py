@@ -4,7 +4,7 @@ from core.reports import Reports, DocumentPDF
 from core.accounting_setup import AccountingSetup
 from core.recovery import RecoveryCodes, ResetPassword
 from core.registers import RegisterMasters, Entries, EntryAction, ActivityLedger
-from core.register_evidence import RegisterAttachments
+from core.register_evidence import RegisterAttachments, PositionAttachments
 from core.register_imports import ImportInspect, ImportBatches, ImportReview
 from core.register_reports import RegisterReports, RegisterReportTemplates
 from core.register_positions import Positions
@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/register/import-template/', ImportTemplate.as_view()),
     path('api/register/positions/', Positions.as_view()),
     path('api/register/positions/<int:pk>/', Positions.as_view()),
+    path('api/register/positions/<int:pk>/attachments/', PositionAttachments.as_view()),
+    path('api/register/positions/<int:pk>/attachments/<int:attachment_id>/', PositionAttachments.as_view()),
     path('api/register/reports/', RegisterReports.as_view()),
     path('api/register/report-templates/', RegisterReportTemplates.as_view()),
     path('api/register/imports/inspect/', ImportInspect.as_view()),

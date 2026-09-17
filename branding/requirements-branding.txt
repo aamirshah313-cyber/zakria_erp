@@ -1,0 +1,9 @@
+# Developer-only tools for regenerating MZS brand assets (branding/*.py).
+# Not needed to run or package the application; keep them out of
+# backend/requirements*.txt. numpy is excluded from the bundled backend.
+resvg-py==0.5.0
+potracer==0.0.4
+numpy==2.5.3
+Pillow==12.3.0
+# Optional: rasterize PDF report samples for visual checks.
+PyMuPDF==1.28.2

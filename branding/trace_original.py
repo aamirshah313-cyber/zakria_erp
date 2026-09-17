@@ -5,7 +5,7 @@ the source exactly. Letter coverage is enlarged and lightly blurred before
 tracing to remove JPEG noise. Writes branding/traced.json, which
 branding/build_logo.py assembles into branding/mzs-logo.svg.
 
-    .venv\\Scripts\\python.exe -m pip install potracer numpy
+    .venv\\Scripts\\python.exe -m pip install -r branding\\requirements-branding.txt
     .venv\\Scripts\\python.exe branding\\trace_original.py
 """
 import json

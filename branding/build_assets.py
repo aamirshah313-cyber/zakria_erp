@@ -4,7 +4,7 @@ Windows only: the tagline uses the system font Century Gothic. Generated files
 are committed, so the app, installer and reports never depend on the font or on
 this script at runtime.
 
-    .venv\\Scripts\\python.exe -m pip install resvg-py
+    .venv\\Scripts\\python.exe -m pip install -r branding\\requirements-branding.txt
     .venv\\Scripts\\python.exe branding\\build_logo.py
     .venv\\Scripts\\python.exe branding\\build_assets.py
 """

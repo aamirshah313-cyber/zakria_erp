@@ -34,10 +34,7 @@ Current priority order. Sections below record what is already delivered; the old
 ### 4. Release hardening (developer)
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
-- Fix the failing workspace_admin_test at 1100px (sidebar ListTile needs a Material ancestor); keep golden images unchanged.
-- Show startup progress during first run and upgrades; the window currently appears only after the service is ready.
 - Streamed backup/restore for large databases (currently in memory, 2 GB limit).
-- List the branding tools (resvg-py, potracer, numpy, PyMuPDF) in a separate developer requirements file; they are installed in .venv for asset generation only, and numpy is explicitly excluded from the bundled backend.
 - Exercise backup/restore inside the frozen service once port 8765 is free.
 - Remove superseded local artifacts (installers 2.1.0 to 2.1.0.6 and older package folders) after the 2.1.0.7 upgrade is confirmed, keeping one previous release for rollback.
 
@@ -57,7 +54,6 @@ Current priority order. Sections below record what is already delivered; the old
 - For wider distribution: create a release signing key (backed up outside git), build a release APK or AAB split per ABI (the debug APK is 194 MB), and test on real phones.
 
 ### 8. Remaining V2 scope
-- Binary supporting documents on openings and transfers (currently reference/location text only).
 - Full historical migration once the client supplies original workbooks; reconcile the PKR 4,409,259 difference between the main receipts total (59,202,802) and the receipt summary (63,612,061) first.
 - Client answers still open: meaning of "Sent to" and "Paid By", category list, report naming, computer/share arrangement.
 
@@ -67,6 +63,16 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 ## V2.1 — current increment
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
+
+## Supporting documents on openings and transfers, startup window — 17 September 2026
+
+Openings and internal transfers now take supporting documents like receipts and payments: each record's menu has **Supporting documents** (PNG, JPEG or PDF up to 5 MB, 10 per record including withdrawn files, only the preparer on the current draft, withdrawal with reason, private authenticated download, audit events carrying the position and kind). Migration 0010 links attachments to either one entry or one position, enforced by a database constraint; the service backs up the database before applying it.
+
+The Windows launcher shows a small "Starting Zakaria ERP…" window with the logo and elapsed seconds when the service is not ready within about a second (first run, database upgrade, slow computer), and closes it before the main window or any error message appears.
+
+Also: the workspace sidebar uses a Material background, fixing the long-failing workspace_admin_test at 1100 px without changing golden images; branding tools are listed in branding/requirements-branding.txt.
+
+Verification: 87 backend tests (6 new position-document tests including the database constraint) and all 24 Flutter tests pass (1 new supporting-documents screen test).
 
 ## Android test APK — 17 September 2026
 

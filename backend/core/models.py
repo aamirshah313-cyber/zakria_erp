@@ -278,7 +278,9 @@ class RegisterAllocation(models.Model):
 
 
 class RegisterAttachment(models.Model):
-    entry = models.ForeignKey(RegisterEntry, on_delete=models.PROTECT, related_name='attachments')
+    # Each document supports exactly one receipt/payment entry or one opening/transfer.
+    entry = models.ForeignKey(RegisterEntry, null=True, blank=True, on_delete=models.PROTECT, related_name='attachments')
+    position = models.ForeignKey('RegisterPosition', null=True, blank=True, on_delete=models.PROTECT, related_name='attachments')
     name = models.CharField(max_length=180)
     mime = models.CharField(max_length=40)
     size = models.PositiveIntegerField()
@@ -288,6 +290,11 @@ class RegisterAttachment(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     withdrawn_at = models.DateTimeField(null=True)
     withdrawal_reason = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(
+            condition=models.Q(entry__isnull=False, position__isnull=True) | models.Q(entry__isnull=True, position__isnull=False),
+            name='register_attachment_single_record')]
 
 
 class RegisterImport(models.Model):

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'device.dart';
 
@@ -20,12 +20,18 @@ class Api {
   static bool get remembersServer => rememberServerOverride ?? isAndroidDevice;
   @visibleForTesting
   static bool? rememberServerOverride;
+  // Implemented in android/.../MainActivity.kt (Android preferences).
+  static const settingsChannel = MethodChannel(
+    'pk.zakariasons.zakaria_erp/settings',
+  );
   static const _serverKey = 'api_server';
   bool serverSaved = false;
 
   Future<void> loadSavedServer() async {
     if (!remembersServer) return;
-    final saved = (await SharedPreferences.getInstance()).getString(_serverKey);
+    final saved = await settingsChannel.invokeMethod<String>('get', {
+      'key': _serverKey,
+    });
     if (saved != null && saved.isNotEmpty) {
       base = saved;
       serverSaved = true;
@@ -34,7 +40,10 @@ class Api {
 
   Future<void> saveServer() async {
     if (!remembersServer) return;
-    await (await SharedPreferences.getInstance()).setString(_serverKey, base);
+    await settingsChannel.invokeMethod<void>('set', {
+      'key': _serverKey,
+      'value': base,
+    });
     serverSaved = true;
   }
 

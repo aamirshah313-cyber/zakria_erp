@@ -10,9 +10,28 @@ Future<void> showRegisterEvidence(BuildContext context, int id) =>
       MaterialPageRoute(builder: (_) => RegisterEvidencePage(entryId: id)),
     );
 
+/// Supporting documents for an opening balance or internal transfer.
+Future<void> showPositionEvidence(BuildContext context, Map row) =>
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => RegisterEvidencePage(
+          entryId: row['id'],
+          position: true,
+          label: '${row['kind'] == 'transfer' ? 'TRF' : 'OP'}-${row['id']}',
+        ),
+      ),
+    );
+
 class RegisterEvidencePage extends StatefulWidget {
   final int entryId;
-  const RegisterEvidencePage({super.key, required this.entryId});
+  final bool position;
+  final String? label;
+  const RegisterEvidencePage({
+    super.key,
+    required this.entryId,
+    this.position = false,
+    this.label,
+  });
   @override
   State<RegisterEvidencePage> createState() => _RegisterEvidencePageState();
 }
@@ -20,7 +39,8 @@ class RegisterEvidencePage extends StatefulWidget {
 class _RegisterEvidencePageState extends State<RegisterEvidencePage> {
   late Future<dynamic> data;
   bool busy = false;
-  String get path => '/register/entries/${widget.entryId}/attachments/';
+  String get path =>
+      '/register/${widget.position ? 'positions' : 'entries'}/${widget.entryId}/attachments/';
   @override
   void initState() {
     super.initState();
@@ -135,7 +155,9 @@ class _RegisterEvidencePageState extends State<RegisterEvidencePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text('REG-${widget.entryId} · Supporting documents'),
+      title: Text(
+        '${widget.label ?? 'REG-${widget.entryId}'} · Supporting documents',
+      ),
       actions: [
         IconButton(
           onPressed: busy ? null : reload,
@@ -162,14 +184,16 @@ class _RegisterEvidencePageState extends State<RegisterEvidencePage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Bank receipts and supporting documents',
+                  Text(
+                    widget.position
+                        ? 'Statements and supporting documents'
+                        : 'Bank receipts and supporting documents',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     editable
-                        ? 'PNG, JPEG or PDF · Up to 5 MB each · 10 documents per entry, including withdrawn files.'
+                        ? 'PNG, JPEG or PDF · Up to 5 MB each · 10 documents per record, including withdrawn files.'
                         : 'Supporting documents are locked while submitted, confirmed or cancelled. Return a submission to its preparer to correct it.',
                   ),
                   if (editable)

@@ -14,7 +14,8 @@ Nothing was added, removed or respelt. Place the logo on white or very light bac
 On Windows (Century Gothic is a Windows system font):
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install resvg-py potracer numpy
+.\.venv\Scripts\python.exe -m pip install -r branding\requirements-branding.txt
+equirements-branding.txt
 .\.venv\Scripts\python.exe branding\trace_original.py   # only if re-tracing Z/S
 .\.venv\Scripts\python.exe branding\build_logo.py       # writes mzs-logo.svg
 .\.venv\Scripts\python.exe branding\build_assets.py     # writes all PNG/ICO assets

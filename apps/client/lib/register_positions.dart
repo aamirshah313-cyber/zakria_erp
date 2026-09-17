@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api.dart';
 import 'ui.dart';
 import 'registers.dart' show requestKey;
+import 'register_evidence.dart';
 
 class RegisterPositionsPage extends StatefulWidget {
   final Map masters;
@@ -111,6 +112,10 @@ class _RegisterPositionsPageState extends State<RegisterPositionsPage> {
             ),
           field('Supporting record / statement reference', reference),
           field('Explanation and evidence location', notes, lines: 3),
+          const Text(
+            'After saving the draft, attach statements or other files from its menu: Supporting documents.',
+            style: TextStyle(color: muted, fontSize: 12),
+          ),
           Text(
             kind == 'opening'
                 ? 'Use reconciled figures only. One opening per scope; no earlier confirmed history. Independent project and account openings are never added together.'
@@ -141,6 +146,11 @@ class _RegisterPositionsPageState extends State<RegisterPositionsPage> {
   }
 
   Future<void> action(Map row, String action) async {
+    if (action == 'documents') {
+      await showPositionEvidence(context, row);
+      if (mounted) setState(reload);
+      return;
+    }
     final reason = TextEditingController();
     final ok = await editor(
       context,
@@ -217,6 +227,10 @@ class _RegisterPositionsPageState extends State<RegisterPositionsPage> {
                     trailing: PopupMenuButton<String>(
                       onSelected: (v) => action(Map.from(r), v),
                       itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'documents',
+                          child: Text('Supporting documents'),
+                        ),
                         if (r['status'] == 'draft' &&
                             r['owner'] == api.user['id'] &&
                             api.can('register.create'))
