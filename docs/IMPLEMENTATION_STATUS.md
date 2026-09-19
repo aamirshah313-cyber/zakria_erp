@@ -7,7 +7,7 @@
 | Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.9.exe (41,701,014 bytes) | Built and checked; not yet installed over the existing installation |
 | Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260919-224417/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
 | Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+9-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
-| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.9 (private) | Installer, portable ZIP and APK |
+| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.9 (private) | Published; installer, portable ZIP and APK uploaded; tag v2.1.0.9 = 7fac8a4 |
 
 Tests at this release: 92 backend tests and 28 Flutter tests pass. Checks: application and setup icons, ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and a 40.6 MB encrypted backup and restore inside the frozen service (11 chunks, all data intact). Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
@@ -22,6 +22,8 @@ Current priority order. Sections below record what is already delivered; the old
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
 - Close the application and confirm zakaria_service.exe stops with it.
 - Attach a statement to a draft opening and a draft transfer (record menu: Supporting documents), submit them, and confirm the documents lock and remain viewable to the reviewer.
+- Check the supporting-document counts on the Openings & transfers list and in Data management.
+- Save a new (format 2) password-protected backup, and restore one made with 2.1.0.8 if you have it, to confirm both formats work in the installed copy.
 - Install the debug APK on a test phone: check the launcher icon, sign-in logo and that Connection settings opens (sign-in waits for task 7).
 
 ### 2. Move acceptance data into the installed application
@@ -36,8 +38,11 @@ Current priority order. Sections below record what is already delivered; the old
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
 - Remove superseded local artifacts (installers 2.1.0 to 2.1.0.8 and older package folders) after the 2.1.0.9 upgrade is confirmed, keeping 2.1.0.8 for rollback.
-- This computer became very slow after its restart on 19 September (Windows build ~20 minutes instead of 1–2, application window ~30 s after launch instead of ~10 s). Check Windows Update and antivirus activity before timing startup again or judging performance on client hardware.
+- This computer was very slow for a few hours after its restart on 19 September (one Windows build ~20 minutes, application window ~30 s after launch); by the evening a full build took about 5 minutes again. Check Windows Update and antivirus activity before timing startup or judging performance on client hardware.
 - Flutter plugin links need Developer Mode or one elevated `flutter pub get` whenever the Flutter plugin list changes (or the links folder is cleared by a failed build). Decide whether to enable Developer Mode on this build computer.
+- Show progress (bytes transferred) and allow cancelling while a large backup is saved or uploaded for restore; today the dialog shows only "Saving…" until it finishes.
+- Clean up Django's spooled upload files in restore-staging if the service stops during an upload (normally removed automatically).
+- The Starting window was not re-checked on 2.1.0.9 (launcher code unchanged since 2.1.0.8); re-check it during the upgrade in task 1.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
