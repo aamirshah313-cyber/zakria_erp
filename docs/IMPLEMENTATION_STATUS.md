@@ -4,19 +4,19 @@
 
 | Item | Location | State |
 |---|---|---|
-| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.8.exe (41,686,687 bytes) | Built; startup window checked on a scratch copy; not yet installed over the existing installation |
-| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260919-212353/ (+ .zip) | Built; runs against storage/v2-desktop test data |
-| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+8-debug.apk | Built and package-checked; cannot sign in until a reachable server exists |
-| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.8 (private) | Installer, portable ZIP and APK uploaded; tag v2.1.0.8 = 80f1b77 |
+| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.9.exe (41,701,014 bytes) | Built and checked; not yet installed over the existing installation |
+| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260919-224417/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
+| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+9-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
+| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.9 (private) | Installer, portable ZIP and APK |
 
-Tests at this release: 87 backend tests and all 24 Flutter tests pass. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
+Tests at this release: 92 backend tests and 28 Flutter tests pass. Checks: application and setup icons, ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and a 40.6 MB encrypted backup and restore inside the frozen service (11 chunks, all data intact). Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
 ## Next tasks
 
 Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
 
 ### 1. Verify the latest release on this computer (user and developer)
-- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.8.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
+- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.9.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
 - Check the MZS logo in the installer wizard, the Start menu/taskbar icon, the sign-in screen, the workspace sidebar, and a PDF, Excel and PNG report header.
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
@@ -35,10 +35,9 @@ Current priority order. Sections below record what is already delivered; the old
 ### 4. Release hardening (developer)
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
-- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.7 and older package folders) after the 2.1.0.8 upgrade is confirmed, keeping one previous release for rollback.
+- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.8 and older package folders) after the 2.1.0.9 upgrade is confirmed, keeping 2.1.0.8 for rollback.
 - This computer became very slow after its restart on 19 September (Windows build ~20 minutes instead of 1–2, application window ~30 s after launch instead of ~10 s). Check Windows Update and antivirus activity before timing startup again or judging performance on client hardware.
 - Flutter plugin links need Developer Mode or one elevated `flutter pub get` whenever the Flutter plugin list changes (or the links folder is cleared by a failed build). Decide whether to enable Developer Mode on this build computer.
-- Build and publish 2.1.0.9 with streamed backups and document counts, following docs/RELEASING.md.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
@@ -66,13 +65,13 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
 
-## Streamed backups, document counts, release checklist — 19 September 2026 (not yet released)
+## Streamed backups, document counts, release checklist — 19 September 2026 (release 2.1.0.9)
 
 - **Streamed backup and restore:** backups stream through files on disk in the service and the application, removing the 2 GB in-memory limit; free disk space is checked first with a readable message. Backup format 2 encrypts in authenticated 4 MB chunks (chunk number and final-chunk flag bound into each tag) plus a whole-file SHA-256; format 1 backups from 2.1.0.5–2.1.0.8 still restore. The local service accepts restore uploads up to 64 GB, spooled to the data drive.
 - **Supporting-document counts** for openings and transfers: shown on the openings/transfers list and in data management (also for receipts and payments), and transfer rows in register reports now count their active documents instead of 0. Withdrawn documents are not counted.
 - **Release checklist:** docs/RELEASING.md. scripts/check_bundled_v2_service.py now uses a temporary empty data folder instead of storage/v2-desktop, so it never migrates real data.
 
-Verification: 92 backend tests (4 new format-2 tests: multi-chunk round trip; truncated, reordered and shortened chunks rejected; format 1 compatibility; low disk space; plus 1 document-count test) and 28 Flutter tests (streamed download, failed download leaves no file, streamed upload; document-count wording). A live run through the waitress service with a 40.6 MB database: encrypted format-2 backup in 11 chunks downloaded in 1.5 s, restore preview in 1.2 s, all 40 MB restored byte-for-byte, staging cleaned. Not yet built into an installer.
+Verification: 92 backend tests (4 new format-2 tests: multi-chunk round trip; truncated, reordered and shortened chunks rejected; format 1 compatibility; low disk space; plus 1 document-count test) and 28 Flutter tests (streamed download, failed download leaves no file, streamed upload; document-count wording). A live run through the waitress service with a 40.6 MB database: encrypted format-2 backup in 11 chunks downloaded in 1.5 s, restore preview in 1.2 s, all 40 MB restored byte-for-byte, staging cleaned. Released as 2.1.0.9; the same 40.6 MB check passed inside the frozen 2.1.0.9 service.
 
 ## Supporting documents on openings and transfers, startup window — 17 September 2026
 
