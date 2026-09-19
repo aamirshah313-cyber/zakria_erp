@@ -39,6 +39,71 @@ String _when(dynamic iso) => '$iso'.length >= 16
 String _size(dynamic bytes) =>
     '${((bytes as num) / (1024 * 1024)).toStringAsFixed(1)} MB';
 
+/// Runs [work] behind a progress dialog with a Cancel button. [preparing] is
+/// shown before any bytes move, [checking] once they have all moved and the
+/// server is still working. Throws [TransferCancelled] when cancelled.
+Future<T> withProgress<T>(
+  BuildContext context,
+  String title,
+  Future<T> Function(Transfer) work, {
+  required String preparing,
+  String checking = 'Finishing…',
+  String moved = 'Transferred',
+}) async {
+  final transfer = Transfer();
+  final navigator = Navigator.of(context);
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        title: Text(title),
+        content: SizedBox(
+          width: 440,
+          child: ListenableBuilder(
+            listenable: Listenable.merge([transfer.progress, transfer.waiting]),
+            builder: (_, _) {
+              final (done, total) = transfer.progress.value;
+              final waiting = transfer.waiting.value;
+              final fraction = !waiting && total != null && total > 0
+                  ? (done / total).clamp(0.0, 1.0)
+                  : null;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    key: const Key('transfer-status'),
+                    waiting
+                        ? (done == 0 ? preparing : checking)
+                        : '$moved ${_size(done)}'
+                              '${total == null ? '' : ' of ${_size(total)}'}',
+                  ),
+                  const SizedBox(height: 12),
+                  LinearProgressIndicator(value: fraction),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const Key('cancel-transfer'),
+            onPressed: transfer.cancel,
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    ),
+  );
+  try {
+    return await work(transfer);
+  } finally {
+    navigator.pop();
+  }
+}
+
 /// Choose, preview and apply a restore. Returns true once data was replaced.
 /// [setup] restores into a new installation before any account exists.
 Future<bool> restoreBackup(
@@ -53,31 +118,45 @@ Future<bool> restoreBackup(
     if (file == null) return false;
   }
   final chosen = file;
-  Future<Map> stage(String password) async {
-    if (chosen == null) {
-      final response = await api.request(
+  Future<Map> stage(String password) => withProgress(
+    context,
+    'Opening backup',
+    preparing: chosen == null ? 'Checking the backup…' : 'Starting upload…',
+    checking: 'Checking the backup…',
+    moved: 'Uploaded',
+    (transfer) async {
+      if (chosen == null) {
+        final response = await api.request(
+          base,
+          method: 'POST',
+          body: {
+            'name': localName,
+            if (password.isNotEmpty) 'password': password,
+          },
+          timeout: _slow,
+          transfer: transfer,
+        );
+        return jsonDecode(response.body);
+      }
+      // Streams from disk; the backup is never read into memory.
+      return await api.uploadFile(
         base,
-        method: 'POST',
-        body: {'name': localName},
+        chosen.openRead(),
+        await chosen.length(),
+        chosen.name,
+        {'password': password},
         timeout: _slow,
+        transfer: transfer,
       );
-      return jsonDecode(response.body);
-    }
-    // Streams from disk; the backup is never read into memory.
-    return await api.uploadFile(
-      base,
-      chosen.openRead(),
-      await chosen.length(),
-      chosen.name,
-      {'password': password},
-      timeout: _slow,
-    );
-  }
+    },
+  );
 
   if (!context.mounted) return false;
   Map? preview;
   try {
     preview = await stage('');
+  } on TransferCancelled {
+    return false;
   } catch (e) {
     if (!problem(e).contains('password-protected')) {
       if (context.mounted) notice(context, problem(e));
@@ -228,12 +307,23 @@ class _BackupPageState extends State<BackupPage> {
         if (location == null) {
           throw Exception('Choose where to save the backup.');
         }
+        if (!mounted) return;
         try {
-          await api.download(
-            '/system/backups/',
-            location.path,
-            body: {'password': password.text, 'confirm_password': confirm.text},
-            timeout: _slow,
+          await withProgress(
+            context,
+            'Saving backup',
+            preparing: 'Preparing the backup…',
+            moved: 'Saved',
+            (transfer) => api.download(
+              '/system/backups/',
+              location.path,
+              body: {
+                'password': password.text,
+                'confirm_password': confirm.text,
+              },
+              timeout: _slow,
+              transfer: transfer,
+            ),
           );
           savedTo = location.path;
         } catch (e) {
@@ -253,10 +343,18 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (location == null) return;
       setState(() => busy = true);
-      await api.download(
-        '/system/backups/${row['name']}/',
-        location.path,
-        timeout: _slow,
+      if (!mounted) return;
+      await withProgress(
+        context,
+        'Saving copy',
+        preparing: 'Starting…',
+        moved: 'Saved',
+        (transfer) => api.download(
+          '/system/backups/${row['name']}/',
+          location.path,
+          timeout: _slow,
+          transfer: transfer,
+        ),
       );
       if (mounted) notice(context, 'Copy saved to ${location.path}');
     } catch (e) {

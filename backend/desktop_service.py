@@ -41,9 +41,12 @@ def prepare_data(data):
 def automatic_backups():
     """Daily copy at startup, rechecked hourly while the application stays open."""
     from django.db import connection
-    from core.backups import automatic_backup_if_due
+    from core.backups import STALE, automatic_backup_if_due, clean_leftovers
     while True:
         try:
+            freed = clean_leftovers(older_than=STALE)
+            if freed:
+                log.info('Removed %d bytes left by interrupted backups or restores', freed)
             created = automatic_backup_if_due()
             if created:
                 log.info('Automatic backup saved: %s', created)
@@ -98,6 +101,11 @@ def main():
         call_command('migrate', interactive=False, verbosity=0)
         connection.close()
         log.info('Database schema is current.')
+    # Nothing is running yet, so everything left by a stopped restore or backup goes.
+    from core.backups import clean_leftovers
+    freed = clean_leftovers()
+    if freed:
+        log.info('Removed %d bytes left by interrupted backups or restores', freed)
     threading.Thread(target=automatic_backups, name='automatic-backups', daemon=True).start()
     # Backup restores stream large files; waitress would otherwise cap requests at 1 GB.
     server = create_server(app, host='127.0.0.1', port=args.port, max_request_body_size=64 * 1024 ** 3)

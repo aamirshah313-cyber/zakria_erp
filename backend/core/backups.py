@@ -61,7 +61,9 @@ SCRYPT = {'n': 2 ** 15, 'r': 8, 'p': 1}
 AAD_V1 = b'zakaria-erp-backup-v1'
 AAD_V2 = b'zakaria-erp-backup-v2'
 DATABASE, ENCRYPTED = 'database.sqlite3', 'database.sqlite3.enc'
-NAME_PATTERN = re.compile(r'^(manual|auto|pre-restore|before-upgrade)-\d{8}-\d{6}(-\d+)?\.zerp-backup$')
+# Previews expire after 30 minutes; anything left longer was abandoned.
+STALE = 3600
+NAME_PATTERN =re.compile(r'^(manual|auto|pre-restore|before-upgrade)-\d{8}-\d{6}(-\d+)?\.zerp-backup$')
 _restore_lock = threading.Lock()
 
 
@@ -79,6 +81,28 @@ def staging_dir():
     folder = Path(settings.DESKTOP_DATA_DIR) / 'restore-staging'
     folder.mkdir(parents=True, exist_ok=True)
     return folder
+
+
+def clean_leftovers(older_than=None):
+    """Remove files an interrupted backup or restore left behind.
+
+    Covers spooled restore uploads and staged databases in restore-staging, and
+    unfinished snapshots and copies in backups. With `older_than` (seconds),
+    only files untouched for that long go; files still open are skipped.
+    Returns the number of bytes freed.
+    """
+    candidates = [*staging_dir().iterdir(), *backups_dir().glob('*.snapshot'), *backups_dir().glob('*.partial')]
+    freed = 0
+    for path in candidates:
+        try:
+            info = path.stat()
+            if not path.is_file() or (older_than is not None and time.time() - info.st_mtime < older_than):
+                continue
+            path.unlink()
+            freed += info.st_size
+        except OSError:
+            continue  # In use (for example an upload being received) or already gone.
+    return freed
 
 
 def ensure_space(folder, needed):
@@ -340,9 +364,7 @@ def inspect_database(path):
 
 def stage_restore(source, password, user):
     """Extract and check a backup (path or seekable file); return a preview and signed token."""
-    for old in staging_dir().glob('*.sqlite3'):
-        if time.time() - old.stat().st_mtime > 3600:
-            old.unlink(missing_ok=True)
+    clean_leftovers(older_than=STALE)
     staged = staging_dir() / f'{secrets.token_hex(16)}.sqlite3'
     try:
         manifest = extract_backup(source, password, staged)

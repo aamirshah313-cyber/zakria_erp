@@ -151,4 +151,47 @@ void main() {
       'Current password is incorrect.',
     );
   });
+
+  testWidgets('Large transfers show progress and can be cancelled', (
+    tester,
+  ) async {
+    late Future<void> running;
+    late Transfer active;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => running = withProgress(
+              context,
+              'Saving backup',
+              preparing: 'Preparing the backup…',
+              moved: 'Saved',
+              (transfer) async {
+                active = transfer;
+                await transfer.aborted;
+                throw const TransferCancelled();
+              },
+            ),
+            child: const Text('go'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    expect(find.text('Preparing the backup…'), findsOneWidget);
+    active.progress.value = (5 * 1024 * 1024, 20 * 1024 * 1024);
+    active.waiting.value = false;
+    await tester.pump();
+    expect(find.text('Saved 5.0 MB of 20.0 MB'), findsOneWidget);
+    final bar = tester.widget<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator),
+    );
+    expect(bar.value, 0.25);
+    final cancelled = expectLater(running, throwsA(isA<TransferCancelled>()));
+    await tester.tap(find.byKey(const Key('cancel-transfer')));
+    await tester.pumpAndSettle();
+    await cancelled;
+    expect(find.text('Saving backup'), findsNothing);
+  });
 }

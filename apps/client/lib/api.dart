@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show ValueNotifier, visibleForTesting;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:http/http.dart' as http;
 
@@ -54,13 +55,18 @@ class Api {
     String method = 'GET',
     Object? body,
     Duration timeout = const Duration(seconds: 25),
+    Transfer? transfer,
   }) async {
-    final req = http.Request(method, Uri.parse('$base$path'));
+    final req = http.AbortableRequest(
+      method,
+      Uri.parse('$base$path'),
+      abortTrigger: transfer?.aborted,
+    );
     req.headers['Content-Type'] = 'application/json';
     if (token != null) req.headers['Authorization'] = 'Bearer $token';
     if (body != null) req.body = jsonEncode(body);
     final response = await http.Response.fromStream(
-      await req.send().timeout(timeout),
+      await _send(req, timeout, transfer),
     );
     if (response.statusCode >= 400) throw _failure(response);
     return response;
@@ -76,27 +82,41 @@ class Api {
 
   /// Streams a response body straight to [target] (large backups): the file is
   /// never held in memory. [timeout] covers the wait for the response to start.
+  /// [transfer] reports progress and can cancel; a cancelled or failed download
+  /// leaves no file behind.
   Future<void> download(
     String path,
     String target, {
     Object? body,
     Duration timeout = const Duration(minutes: 60),
+    Transfer? transfer,
   }) async {
-    final req = http.Request(
+    final req = http.AbortableRequest(
       body == null ? 'GET' : 'POST',
       Uri.parse('$base$path'),
+      abortTrigger: transfer?.aborted,
     );
     req.headers['Content-Type'] = 'application/json';
     if (token != null) req.headers['Authorization'] = 'Bearer $token';
     if (body != null) req.body = jsonEncode(body);
-    final response = await req.send().timeout(timeout);
+    final response = await _send(req, timeout, transfer);
     if (response.statusCode >= 400) {
       throw _failure(await http.Response.fromStream(response));
     }
-    await writeStreamToFile(response.stream, target);
+    if (transfer == null) {
+      await writeStreamToFile(response.stream, target);
+      return;
+    }
+    transfer._start(response.contentLength);
+    try {
+      await writeStreamToFile(transfer._count(response.stream), target);
+    } on http.RequestAbortedException {
+      throw const TransferCancelled();
+    }
   }
 
   /// Uploads a file from a byte stream (large backups) with extra form fields.
+  /// [transfer] reports bytes sent and can cancel.
   Future<dynamic> uploadFile(
     String path,
     Stream<List<int>> content,
@@ -104,18 +124,49 @@ class Api {
     String name,
     Map<String, String> fields, {
     Duration timeout = const Duration(minutes: 60),
+    Transfer? transfer,
   }) async {
-    final request = http.MultipartRequest('POST', Uri.parse('$base$path'));
+    final request = http.AbortableMultipartRequest(
+      'POST',
+      Uri.parse('$base$path'),
+      abortTrigger: transfer?.aborted,
+    );
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
     request.fields.addAll(fields);
+    transfer?._start(length);
     request.files.add(
-      http.MultipartFile('file', content, length, filename: name),
+      http.MultipartFile(
+        'file',
+        transfer == null ? content : transfer._count(content),
+        length,
+        filename: name,
+      ),
     );
-    final response = await http.Response.fromStream(
-      await request.send().timeout(timeout),
-    );
-    if (response.statusCode >= 400) throw Exception(response.body);
-    return jsonDecode(response.body);
+    final response = await _send(request, timeout, transfer);
+    final text = await http.Response.fromStream(response);
+    if (text.statusCode >= 400) throw Exception(text.body);
+    return jsonDecode(text.body);
+  }
+
+  /// Sends [request]; with a [transfer], cancelling stops at once, even while
+  /// the server is still preparing its answer.
+  static Future<http.StreamedResponse> _send(
+    http.BaseRequest request,
+    Duration timeout,
+    Transfer? transfer,
+  ) async {
+    final sent = request.send().timeout(timeout);
+    if (transfer == null) return sent;
+    try {
+      return await Future.any([
+        sent,
+        transfer.aborted.then<http.StreamedResponse>(
+          (_) => throw const TransferCancelled(),
+        ),
+      ]);
+    } on http.RequestAbortedException {
+      throw const TransferCancelled();
+    }
   }
 
   Future<dynamic> get(String path) async =>
@@ -173,6 +224,46 @@ class Api {
 }
 
 final api = Api();
+
+class TransferCancelled implements Exception {
+  const TransferCancelled();
+  @override
+  String toString() => 'Cancelled.';
+}
+
+/// Progress and cancellation for a large upload or download.
+class Transfer {
+  final _cancel = Completer<void>();
+
+  /// Bytes moved so far and the expected total (null when unknown).
+  final progress = ValueNotifier<(int, int?)>((0, null));
+
+  /// True while no bytes are moving because the server is working: preparing
+  /// a backup before sending it, or checking an uploaded one.
+  final waiting = ValueNotifier<bool>(true);
+
+  Future<void> get aborted => _cancel.future;
+  bool get cancelled => _cancel.isCompleted;
+  void cancel() {
+    if (!cancelled) _cancel.complete();
+  }
+
+  void _start(int? total) => progress.value = (0, total);
+
+  Stream<List<int>> _count(Stream<List<int>> source) async* {
+    waiting.value = false;
+    var done = 0;
+    await for (final block in source) {
+      if (cancelled) throw const TransferCancelled();
+      done += block.length;
+      progress.value = (done, progress.value.$2);
+      yield block;
+    }
+    if (cancelled) throw const TransferCancelled();
+    waiting.value = true;
+  }
+}
+
 String money(dynamic value) {
   final match = RegExp(r'^(-?)(\d+)(?:\.(\d+))?$').firstMatch('$value'.trim());
   if (match == null) return '0.00';

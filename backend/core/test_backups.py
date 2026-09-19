@@ -259,3 +259,36 @@ class StreamedFormatTests(BackupTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn('Not enough free disk space', str(response.data))
         self.assertEqual([p for p in (self.data / 'backups').iterdir()], [])
+
+
+class LeftoverCleanupTests(BackupTestCase):
+    def leftovers(self):
+        staging, folder = backups.staging_dir(), backups.backups_dir()
+        paths = [staging / 'tmpab12.upload.zerp-backup', staging / 'c0ffee.sqlite3',
+                 folder / 'tmp9x.snapshot', folder / 'manual-20260920-101010.partial']
+        for path in paths:
+            path.write_bytes(b'x' * 1000)
+        return paths
+
+    def test_startup_removes_everything_an_interrupted_restore_left(self):
+        keep = backups.save_local_backup('auto')[0]
+        paths = self.leftovers()
+        self.assertEqual(backups.clean_leftovers(), 4000)
+        self.assertFalse(any(path.exists() for path in paths))
+        self.assertTrue(keep.exists())
+
+    def test_while_running_only_stale_files_are_removed(self):
+        import os
+        import time
+        stale, *recent = self.leftovers()
+        old = time.time() - backups.STALE - 60
+        os.utime(stale, (old, old))
+        self.assertEqual(backups.clean_leftovers(older_than=backups.STALE), 1000)
+        self.assertFalse(stale.exists())
+        self.assertTrue(all(path.exists() for path in recent))
+
+    def test_files_in_use_are_skipped(self):
+        paths = self.leftovers()
+        with patch.object(Path, 'unlink', side_effect=PermissionError):
+            self.assertEqual(backups.clean_leftovers(), 0)
+        self.assertTrue(all(path.exists() for path in paths))
