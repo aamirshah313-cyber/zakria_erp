@@ -62,16 +62,60 @@ class Api {
     final response = await http.Response.fromStream(
       await req.send().timeout(timeout),
     );
-    if (response.statusCode >= 400) {
-      String message;
-      try {
-        message = jsonDecode(response.body).toString();
-      } catch (_) {
-        message = 'Server error (${response.statusCode}).';
-      }
-      throw Exception(message);
-    }
+    if (response.statusCode >= 400) throw _failure(response);
     return response;
+  }
+
+  static Exception _failure(http.Response response) {
+    try {
+      return Exception(jsonDecode(response.body).toString());
+    } catch (_) {
+      return Exception('Server error (${response.statusCode}).');
+    }
+  }
+
+  /// Streams a response body straight to [target] (large backups): the file is
+  /// never held in memory. [timeout] covers the wait for the response to start.
+  Future<void> download(
+    String path,
+    String target, {
+    Object? body,
+    Duration timeout = const Duration(minutes: 60),
+  }) async {
+    final req = http.Request(
+      body == null ? 'GET' : 'POST',
+      Uri.parse('$base$path'),
+    );
+    req.headers['Content-Type'] = 'application/json';
+    if (token != null) req.headers['Authorization'] = 'Bearer $token';
+    if (body != null) req.body = jsonEncode(body);
+    final response = await req.send().timeout(timeout);
+    if (response.statusCode >= 400) {
+      throw _failure(await http.Response.fromStream(response));
+    }
+    await writeStreamToFile(response.stream, target);
+  }
+
+  /// Uploads a file from a byte stream (large backups) with extra form fields.
+  Future<dynamic> uploadFile(
+    String path,
+    Stream<List<int>> content,
+    int length,
+    String name,
+    Map<String, String> fields, {
+    Duration timeout = const Duration(minutes: 60),
+  }) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$base$path'));
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+    request.fields.addAll(fields);
+    request.files.add(
+      http.MultipartFile('file', content, length, filename: name),
+    );
+    final response = await http.Response.fromStream(
+      await request.send().timeout(timeout),
+    );
+    if (response.statusCode >= 400) throw Exception(response.body);
+    return jsonDecode(response.body);
   }
 
   Future<dynamic> get(String path) async =>

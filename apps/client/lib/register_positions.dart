@@ -222,7 +222,7 @@ class _RegisterPositionsPageState extends State<RegisterPositionsPage> {
                       '${r['kind'] == 'transfer' ? 'TRF' : 'OP'}-${r['id']} · ${label(scope, r[scope])}${r['destination'] == null ? '' : ' → ${label('source', r['destination'])}'} · PKR ${money(r['amount'])}',
                     ),
                     subtitle: Text(
-                      '${r['date']} · ${r['status']} · ${r['side']}\n${r['reference']}\n${r['remarks']}',
+                      '${r['date']} · ${r['status']} · ${r['side']} · ${documentCount(r['documents'])}\n${r['reference']}\n${r['remarks']}',
                     ),
                     trailing: PopupMenuButton<String>(
                       onSelected: (v) => action(Map.from(r), v),

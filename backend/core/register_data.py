@@ -1,6 +1,7 @@
 """Recoverable removal for V2 working data; financial history is retained."""
 import hashlib
 from django.db import transaction
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -55,6 +56,9 @@ class RegisterData(APIView):
             query = query.filter(status='deleted') if kind in STATUS_KINDS else query.filter(active=False)
         else:
             query = query.exclude(status='deleted') if kind in STATUS_KINDS else query.filter(active=True)
+        if kind in ['entries', 'positions']:
+            # Active supporting documents; withdrawn files stay in history.
+            query = query.annotate(documents=Count('attachments', filter=Q(attachments__withdrawn_at__isnull=True)))
         rows = []
         for obj in query.order_by('-pk')[(page-1)*50:page*50]:
             label = getattr(obj, 'number', None) or getattr(obj, 'name', None) or getattr(obj, 'filename', None) or getattr(obj, 'party', None) or getattr(obj, 'reference', '')
@@ -65,7 +69,8 @@ class RegisterData(APIView):
                 actions = []
             rows.append({'id':obj.pk, 'label':label, 'status':state(obj), 'revision':revision(obj),
                          'date':str(getattr(obj, 'date', getattr(obj,'issue_date',''))), 'amount':str(getattr(obj, 'amount', getattr(obj,'total',''))),
-                         'version':getattr(obj,'version',None), 'actions':actions})
+                         'version':getattr(obj,'version',None), 'actions':actions,
+                         **({'documents': obj.documents} if kind in ['entries', 'positions'] else {})})
         return Response({'kinds':{k:v[1] for k,v in KINDS.items()}, 'rows':rows, 'count':query.count(), 'page':page})
 
     @transaction.atomic

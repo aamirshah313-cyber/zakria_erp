@@ -143,7 +143,8 @@ class _RegisterDataPageState extends State<RegisterDataPage> {
               child: ListTile(
                 title: Text('#${row['id']} ${row['label']}'),
                 subtitle: Text(
-                  '${row['status']} · ${row['date']} ${row['amount']}',
+                  '${row['status']} · ${row['date']} ${row['amount']}'
+                  '${row.containsKey('documents') ? ' · ${documentCount(row['documents'])}' : ''}',
                 ),
                 trailing: Wrap(
                   children: [

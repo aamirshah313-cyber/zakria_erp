@@ -11,9 +11,11 @@ New installations give both to Administrator. On existing data (for example the 
 
 ## Backup file
 
-`*.zerp-backup` is a zip with `manifest.json` (format, app version, kind, creation time, SHA-256 of the database) and the database. Sign-in sessions are removed from the copy.
+`*.zerp-backup` is a zip with `manifest.json` (format, app version, kind, creation time, database size and SHA-256) and the database. Sign-in sessions are removed from the copy.
 
-Manual backups can be password-protected: AES-256-GCM with a key derived by scrypt (N=2^15, r=8, p=1). The password must be at least 10 characters and is never stored, logged or recoverable. A forgotten password makes that backup unusable. Automatic and safety copies are not encrypted; they stay inside `C:\ProgramData\ZakariaERP\backups`, which only accounts on this computer can reach.
+Backups stream through files on disk in both directions (service and application), so size is limited by free disk space, not memory. The service checks free space on the data drive before writing a backup or staging a restore and reports how much is needed. Uploads for restore spool to `restore-staging` on the data drive; the local service accepts request bodies up to 64 GB.
+
+Manual backups can be password-protected: AES-256-GCM with a key derived by scrypt (N=2^15, r=8, p=1). Format 2 (from 2.1.0.9) encrypts in 4 MB chunks; each chunk's number and a final-chunk flag are authenticated, so truncated, reordered or shortened files are rejected, and the whole database is also checked against its SHA-256. Format 1 backups made by 2.1.0.5–2.1.0.8 (one encrypted block) remain restorable. The password must be at least 10 characters and is never stored, logged or recoverable. A forgotten password makes that backup unusable. Automatic and safety copies are not encrypted; they stay inside `C:\ProgramData\ZakariaERP\backups`, which only accounts on this computer can reach.
 
 ## Automatic copies
 
@@ -42,6 +44,6 @@ On a new installation, the first-run screen offers **Restore from a backup inste
 
 ## Limits
 
-- Backups up to 2 GB; files are processed in memory.
+- Backup size is limited by free disk space (roughly twice the database size is needed while writing or restoring). Format 1 encrypted backups are still decrypted in one piece; they were created in memory and are small.
 - One restore at a time. Other users are signed out and must sign in again with backup accounts.
 - No scheduled copying to external drives or cloud storage.

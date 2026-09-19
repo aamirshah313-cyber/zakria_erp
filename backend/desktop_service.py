@@ -99,7 +99,8 @@ def main():
         connection.close()
         log.info('Database schema is current.')
     threading.Thread(target=automatic_backups, name='automatic-backups', daemon=True).start()
-    server = create_server(app, host='127.0.0.1', port=args.port)
+    # Backup restores stream large files; waitress would otherwise cap requests at 1 GB.
+    server = create_server(app, host='127.0.0.1', port=args.port, max_request_body_size=64 * 1024 ** 3)
     log.info('V2 desktop service ready on loopback using %s', data)
     server.run()
 

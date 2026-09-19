@@ -6,6 +6,7 @@ import sqlite3
 import tempfile
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TransactionTestCase, override_settings
@@ -33,7 +34,7 @@ class BackupTestCase(TransactionTestCase):
     def backup(self, **body):
         response = self.client.post('/api/system/backups/', body, format='json')
         self.assertEqual(response.status_code, 200, getattr(response, 'data', None))
-        return response.content
+        return b''.join(response.streaming_content)
 
     def upload(self, content, path='/api/system/restore/', **fields):
         return self.client.post(path, {'file': SimpleUploadedFile('data.zerp-backup', content), **fields}, format='multipart')
@@ -147,7 +148,8 @@ class BackupTests(BackupTestCase):
         path, _ = backups.save_local_backup('auto')
         listing = self.client.get('/api/system/backups/').data['backups']
         self.assertEqual([row['name'] for row in listing], [path.name])
-        self.assertEqual(self.client.get(f'/api/system/backups/{path.name}/').content, path.read_bytes())
+        downloaded = self.client.get(f'/api/system/backups/{path.name}/')
+        self.assertEqual(b''.join(downloaded.streaming_content), path.read_bytes())
         self.assertEqual(self.client.get('/api/system/backups/..%5Cregister.sqlite3/').status_code, 404)
         preview = self.client.post('/api/system/restore/', {'name': path.name}, format='json')
         self.assertEqual(preview.status_code, 200, preview.data)
@@ -186,3 +188,74 @@ class SetupRestoreTests(BackupTestCase):
         response = APIClient().post('/api/setup/restore/', {'file': SimpleUploadedFile('d.zerp-backup', content)}, format='multipart')
         self.assertEqual(response.status_code, 400)
         self.assertIn('already set up', str(response.data))
+
+
+class StreamedFormatTests(BackupTestCase):
+    """Format 2: chunked encryption, tamper detection, legacy format 1, disk space."""
+
+    def setUp(self):
+        super().setUp()
+        for i in range(40):
+            RegisterCategory.objects.create(code=f'C{i:03d}', name='Category ' + 'x' * 200 + str(i))
+        chunk = patch.object(backups, 'CHUNK', 1024)
+        chunk.start()
+        self.addCleanup(chunk.stop)
+
+    def encrypted(self):
+        content = self.backup(password=BACKUP_PASSWORD, confirm_password=BACKUP_PASSWORD)
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
+            manifest = json.loads(archive.read('manifest.json'))
+            payload = archive.read('database.sqlite3.enc')
+        return manifest, payload
+
+    def rebuild(self, manifest, payload):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, 'w') as archive:
+            archive.writestr('database.sqlite3.enc', payload)
+            archive.writestr('manifest.json', json.dumps(manifest))
+        return stream.getvalue()
+
+    def test_multi_chunk_encrypted_backup_round_trips(self):
+        manifest, payload = self.encrypted()
+        self.assertEqual((manifest['format_version'], manifest['cipher']['chunk']), (2, 1024))
+        chunks = -(-manifest['size'] // 1024)
+        self.assertGreater(chunks, 10)
+        self.assertEqual(len(payload), manifest['size'] + 16 * chunks)
+        _, database = backups.open_backup(self.rebuild(manifest, payload), BACKUP_PASSWORD)
+        self.assertEqual(len(database), manifest['size'])
+        self.assertEqual(__import__('hashlib').sha256(database).hexdigest(), manifest['sha256'])
+
+    def test_truncated_reordered_or_shortened_chunks_are_rejected(self):
+        manifest, payload = self.encrypted()
+        sealed = 1024 + 16
+        truncated = payload[:-sealed]
+        swapped = payload[sealed:2 * sealed] + payload[:sealed] + payload[2 * sealed:]
+        shortened = dict(manifest, size=manifest['size'] - (manifest['size'] % 1024 or 1024))
+        for tampered_manifest, tampered in [(manifest, truncated), (manifest, swapped), (shortened, payload[:len(payload) - (len(payload) - (shortened['size'] + 16 * -(-shortened['size'] // 1024)))])]:
+            response = self.upload(self.rebuild(tampered_manifest, tampered), password=BACKUP_PASSWORD)
+            self.assertEqual(response.status_code, 400, response.data)
+
+    def test_format_1_encrypted_backup_still_restores(self):
+        _, database = backups.open_backup(self.backup())
+        salt, nonce = b's' * 16, b'n' * 12
+        key = backups._key(BACKUP_PASSWORD, salt, backups.SCRYPT)
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        legacy = {'format': 'zakaria-erp-backup', 'format_version': 1, 'app_version': '2.1.0', 'kind': 'manual',
+                  'created_at': '2026-09-17T10:00:00+05:00', 'encrypted': True,
+                  'sha256': __import__('hashlib').sha256(database).hexdigest(),
+                  'kdf': {'name': 'scrypt', **backups.SCRYPT, 'salt': __import__('base64').b64encode(salt).decode()},
+                  'nonce': __import__('base64').b64encode(nonce).decode()}
+        content = self.rebuild(legacy, AESGCM(key).encrypt(nonce, database, backups.AAD_V1))
+        self.assertIn('password', self.upload(content, password='Wrong-phrase-000000').data)
+        preview = self.upload(content, password=BACKUP_PASSWORD)
+        self.assertEqual(preview.status_code, 200, preview.data)
+        self.assertEqual(preview.data['backup']['app_version'], '2.1.0')
+
+    def test_low_disk_space_is_reported_before_writing(self):
+        from collections import namedtuple
+        usage = namedtuple('usage', 'total used free')(10, 10, 1024)
+        with patch('core.backups.shutil.disk_usage', return_value=usage):
+            response = self.client.post('/api/system/backups/', {}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Not enough free disk space', str(response.data))
+        self.assertEqual([p for p in (self.data / 'backups').iterdir()], [])

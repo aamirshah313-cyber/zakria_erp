@@ -18,6 +18,9 @@ CORS_ALLOWED_ORIGINS = []
 # Private native-client loopback traffic only; never use this for a public host.
 SECURE_SSL_REDIRECT = False
 MEDIA_ROOT = DESKTOP_DATA_DIR / 'evidence'
+# Large uploads (backup restores) spool to the data drive, not the system temp folder.
+FILE_UPLOAD_TEMP_DIR = DESKTOP_DATA_DIR / 'restore-staging'
+FILE_UPLOAD_TEMP_DIR.mkdir(parents=True, exist_ok=True)
 # Register supporting documents are private database blobs, served only through authenticated APIs.
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False

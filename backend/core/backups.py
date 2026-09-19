@@ -1,9 +1,15 @@
 """Full data backup and restore for the desktop installation.
 
 Supporting documents are database blobs, so one SQLite snapshot is a complete
-backup. A .zerp-backup file is a zip holding manifest.json and the database,
+backup. A .zerp-backup file is a zip holding the database and manifest.json,
 optionally encrypted with AES-256-GCM using a scrypt-derived key. Passwords are
 never stored or logged; a forgotten password makes that backup unreadable.
+
+Backups stream through files on disk, so their size is limited by free disk
+space rather than memory. Format 2 encrypts in authenticated chunks: each
+chunk's number and a final-chunk flag are bound into its tag, so reordering,
+dropping or truncating chunks fails decryption. Format 1 backups (2.1.0.5 to
+2.1.0.8, whole-message encryption) remain restorable.
 
 Restore replaces every record, account and password with the backup's, after
 saving an unencrypted safety copy of the current data. All sessions end.
@@ -14,8 +20,10 @@ from datetime import date, datetime
 import hashlib
 import io
 import json
+import os
 import re
 import secrets
+import shutil
 import sqlite3
 import tempfile
 import threading
@@ -31,8 +39,7 @@ from django.core import signing
 from django.core.management import call_command
 from django.db import connection
 from django.db.migrations.loader import MigrationLoader
-from django.http import HttpResponse
-from django.utils.http import content_disposition_header
+from django.http import FileResponse
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -44,11 +51,16 @@ from .first_run import setup_required
 from .models import AccessSession
 
 FORMAT = 'zakaria-erp-backup'
+FORMAT_VERSION = 2
 EXTENSION = '.zerp-backup'
 AUTOMATIC_KEEP = 7
-MAX_DATABASE_BYTES = 2 * 1024 ** 3
+CHUNK = 4 * 1024 * 1024
+COPY_BUFFER = 1024 * 1024
+TAG = 16
 SCRYPT = {'n': 2 ** 15, 'r': 8, 'p': 1}
-AAD = b'zakaria-erp-backup-v1'
+AAD_V1 = b'zakaria-erp-backup-v1'
+AAD_V2 = b'zakaria-erp-backup-v2'
+DATABASE, ENCRYPTED = 'database.sqlite3', 'database.sqlite3.enc'
 NAME_PATTERN = re.compile(r'^(manual|auto|pre-restore|before-upgrade)-\d{8}-\d{6}(-\d+)?\.zerp-backup$')
 _restore_lock = threading.Lock()
 
@@ -69,54 +81,113 @@ def staging_dir():
     return folder
 
 
+def ensure_space(folder, needed):
+    """Refuse early, with a readable message, when the disk cannot hold the work."""
+    free = shutil.disk_usage(folder).free
+    required = int(needed * 1.1) + 50 * 1024 * 1024
+    if free < required:
+        raise ValidationError(f'Not enough free disk space: about {required // (1024 * 1024)} MB is needed, '
+                              f'{free // (1024 * 1024)} MB is free on the data drive.')
+
+
 def _key(password, salt, params):
     return Scrypt(salt=salt, length=32, **params).derive(password.encode('utf-8'))
 
 
-def snapshot_bytes():
+def _chunk_nonce_aad(prefix, index, final):
+    counter = index.to_bytes(4, 'big')
+    return prefix + counter, AAD_V2 + counter + (b'\x01' if final else b'\x00')
+
+
+def _chunks(size):
+    return max(1, -(-size // CHUNK))
+
+
+def file_sha256(path):
+    digest = hashlib.sha256()
+    with open(path, 'rb') as source:
+        while block := source.read(COPY_BUFFER):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def snapshot_to(path):
     """Consistent copy of the live database, without sign-in sessions."""
-    with tempfile.TemporaryDirectory() as folder:
-        target = Path(folder) / 'snapshot.sqlite3'
-        connection.ensure_connection()
-        with closing(sqlite3.connect(target)) as copy:
-            connection.connection.backup(copy)
-            copy.execute('DELETE FROM core_accesssession')
-            copy.commit()
-            if copy.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
-                raise ValidationError('The database failed its integrity check; no backup was written.')
-        return target.read_bytes()
+    connection.ensure_connection()
+    with closing(sqlite3.connect(path)) as copy:
+        connection.connection.backup(copy)
+        copy.execute('DELETE FROM core_accesssession')
+        copy.commit()
+        if copy.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+            raise ValidationError('The database failed its integrity check; no backup was written.')
+
+
+def write_backup(kind, target, password=''):
+    """Write a complete backup zip to the writable binary file `target`."""
+    live = Path(settings.DATABASES['default']['NAME'])
+    estimate = live.stat().st_size if live.is_file() else 0
+    ensure_space(backups_dir(), estimate * 2)
+    handle, snapshot = tempfile.mkstemp(suffix='.snapshot', dir=backups_dir())
+    os.close(handle)
+    try:
+        snapshot_to(snapshot)
+        size = os.path.getsize(snapshot)
+        manifest = {'format': FORMAT, 'format_version': FORMAT_VERSION, 'app_version': app_version(), 'kind': kind,
+                    'created_at': datetime.now().astimezone().isoformat(timespec='seconds'),
+                    'size': size, 'encrypted': bool(password)}
+        digest = hashlib.sha256()
+        stamp = datetime.now().timetuple()[:6]
+        with zipfile.ZipFile(target, 'w') as archive:
+            if password:
+                salt, prefix = secrets.token_bytes(16), secrets.token_bytes(8)
+                manifest['kdf'] = {'name': 'scrypt', **SCRYPT, 'salt': base64.b64encode(salt).decode()}
+                manifest['cipher'] = {'name': 'aes-256-gcm-chunked', 'chunk': CHUNK, 'nonce_prefix': base64.b64encode(prefix).decode()}
+                cipher = AESGCM(_key(password, salt, SCRYPT))
+                info = zipfile.ZipInfo(ENCRYPTED, stamp)
+                info.compress_type = zipfile.ZIP_STORED
+                with open(snapshot, 'rb') as source, archive.open(info, 'w', force_zip64=True) as sink:
+                    count = _chunks(size)
+                    for index in range(count):
+                        block = source.read(CHUNK)
+                        digest.update(block)
+                        nonce, aad = _chunk_nonce_aad(prefix, index, index == count - 1)
+                        sink.write(cipher.encrypt(nonce, block, aad))
+            else:
+                info = zipfile.ZipInfo(DATABASE, stamp)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                with open(snapshot, 'rb') as source, archive.open(info, 'w', force_zip64=True) as sink:
+                    while block := source.read(COPY_BUFFER):
+                        digest.update(block)
+                        sink.write(block)
+            manifest['sha256'] = digest.hexdigest()
+            archive.writestr(zipfile.ZipInfo('manifest.json', stamp), json.dumps(manifest, indent=2))
+    finally:
+        Path(snapshot).unlink(missing_ok=True)
+    return manifest
+
+
+def backup_name(kind, when=None):
+    return f"{kind}-{(when or datetime.now()).strftime('%Y%m%d-%H%M%S')}{EXTENSION}"
 
 
 def build_backup(kind, password='', when=None):
-    database = snapshot_bytes()
-    manifest = {'format': FORMAT, 'format_version': 1, 'app_version': app_version(), 'kind': kind,
-                'created_at': datetime.now().astimezone().isoformat(timespec='seconds'),
-                'sha256': hashlib.sha256(database).hexdigest(), 'encrypted': bool(password)}
+    """Backup as bytes (small databases and tests); prefer write_backup."""
     stream = io.BytesIO()
-    if password:
-        salt, nonce = secrets.token_bytes(16), secrets.token_bytes(12)
-        manifest['kdf'] = {'name': 'scrypt', **SCRYPT, 'salt': base64.b64encode(salt).decode()}
-        manifest['nonce'] = base64.b64encode(nonce).decode()
-        payload = AESGCM(_key(password, salt, SCRYPT)).encrypt(nonce, database, AAD)
-        with zipfile.ZipFile(stream, 'w', zipfile.ZIP_STORED) as archive:
-            archive.writestr('manifest.json', json.dumps(manifest, indent=2))
-            archive.writestr('database.sqlite3.enc', payload)
-    else:
-        with zipfile.ZipFile(stream, 'w', zipfile.ZIP_DEFLATED) as archive:
-            archive.writestr('manifest.json', json.dumps(manifest, indent=2))
-            archive.writestr('database.sqlite3', database)
-    stamp = (when or datetime.now()).strftime('%Y%m%d-%H%M%S')
-    return f'{kind}-{stamp}{EXTENSION}', stream.getvalue(), manifest
+    manifest = write_backup(kind, stream, password)
+    return backup_name(kind, when), stream.getvalue(), manifest
 
 
 def save_local_backup(kind, when=None):
-    name, content, manifest = build_backup(kind, when=when)
-    target = backups_dir() / name
+    target = backups_dir() / backup_name(kind, when)
     if target.exists():
         target = target.with_name(target.name.replace(EXTENSION, f'-{secrets.randbelow(10 ** 6)}{EXTENSION}'))
     temporary = target.with_suffix('.partial')
-    temporary.write_bytes(content)
-    temporary.replace(target)
+    try:
+        with open(temporary, 'wb') as sink:
+            manifest = write_backup(kind, sink)
+        temporary.replace(target)
+    finally:
+        temporary.unlink(missing_ok=True)
     return target, manifest
 
 
@@ -141,42 +212,97 @@ def read_manifest(archive):
         manifest = json.loads(archive.read('manifest.json'))
     except (KeyError, ValueError):
         raise ValidationError('This is not a Zakaria ERP backup file.')
-    if manifest.get('format') != FORMAT or manifest.get('format_version') != 1:
+    if manifest.get('format') != FORMAT or manifest.get('format_version') not in (1, 2):
         raise ValidationError('This backup format is not supported by this version.')
     return manifest
 
 
-def open_backup(content, password=''):
-    """Validate a backup file and return (manifest, database bytes)."""
+def _wrong_password():
+    return ValidationError({'password': ['Wrong backup password, or the file is damaged.']})
+
+
+def _key_for(manifest, password):
+    if not password:
+        raise ValidationError({'password': ['This backup is password-protected. Enter its backup password.']})
+    kdf = manifest.get('kdf', {})
     try:
-        archive = zipfile.ZipFile(io.BytesIO(content))
-    except zipfile.BadZipFile:
+        params = {name: int(kdf[name]) for name in ('n', 'r', 'p')}
+        if params != SCRYPT:
+            raise ValueError
+        return _key(password, base64.b64decode(kdf['salt']), params)
+    except (KeyError, ValueError, TypeError):
+        raise _wrong_password()
+
+
+def extract_backup(source, password, target):
+    """Validate a backup (path or seekable file) and write its database to `target`.
+
+    Streams in bounded chunks and verifies the SHA-256 of the result. Returns the manifest.
+    """
+    try:
+        archive = zipfile.ZipFile(source)
+    except (zipfile.BadZipFile, OSError):
         raise ValidationError('This is not a Zakaria ERP backup file.')
     with archive:
         manifest = read_manifest(archive)
-        member = 'database.sqlite3.enc' if manifest.get('encrypted') else 'database.sqlite3'
+        encrypted = bool(manifest.get('encrypted'))
         try:
-            info = archive.getinfo(member)
+            info = archive.getinfo(ENCRYPTED if encrypted else DATABASE)
         except KeyError:
             raise ValidationError('The backup file is incomplete.')
-        if info.file_size > MAX_DATABASE_BYTES:
-            raise ValidationError('The backup is larger than this version can restore.')
-        payload = archive.read(member)
-    if manifest.get('encrypted'):
-        if not password:
-            raise ValidationError({'password': ['This backup is password-protected. Enter its backup password.']})
-        kdf = manifest.get('kdf', {})
-        try:
-            params = {name: int(kdf[name]) for name in ('n', 'r', 'p')}
-            if params != SCRYPT:
-                raise ValueError
-            key = _key(password, base64.b64decode(kdf['salt']), params)
-            payload = AESGCM(key).decrypt(base64.b64decode(manifest['nonce']), payload, AAD)
-        except (InvalidTag, KeyError, ValueError, TypeError):
-            raise ValidationError({'password': ['Wrong backup password, or the file is damaged.']})
-    if hashlib.sha256(payload).hexdigest() != manifest.get('sha256'):
+        ensure_space(Path(target).parent, int(manifest.get('size') or info.file_size))
+        digest = hashlib.sha256()
+        with archive.open(info) as payload, open(target, 'wb') as sink:
+            if not encrypted:
+                while block := payload.read(COPY_BUFFER):
+                    digest.update(block)
+                    sink.write(block)
+            elif manifest['format_version'] == 1:
+                # Whole-message format from 2.1.0.5-2.1.0.8; such backups were built in memory.
+                key = _key_for(manifest, password)
+                try:
+                    block = AESGCM(key).decrypt(base64.b64decode(manifest['nonce']), payload.read(), AAD_V1)
+                except (InvalidTag, KeyError, ValueError, TypeError):
+                    raise _wrong_password()
+                digest.update(block)
+                sink.write(block)
+            else:
+                key = _key_for(manifest, password)
+                try:
+                    cipher = manifest['cipher']
+                    prefix, chunk, size = base64.b64decode(cipher['nonce_prefix']), int(cipher['chunk']), int(manifest['size'])
+                    if cipher.get('name') != 'aes-256-gcm-chunked' or len(prefix) != 8 or not 0 < chunk <= 64 * 1024 * 1024 or size < 0:
+                        raise ValueError
+                except (KeyError, ValueError, TypeError):
+                    raise ValidationError('The backup file is damaged (invalid encryption header).')
+                aes, count, remaining = AESGCM(key), max(1, -(-size // chunk)), size
+                for index in range(count):
+                    length = min(chunk, remaining)
+                    sealed = payload.read(length + TAG)
+                    nonce, aad = _chunk_nonce_aad(prefix, index, index == count - 1)
+                    try:
+                        block = aes.decrypt(nonce, sealed, aad)
+                    except InvalidTag:
+                        raise _wrong_password()
+                    remaining -= len(block)
+                    digest.update(block)
+                    sink.write(block)
+                if remaining or payload.read(1):
+                    raise ValidationError('The backup file is damaged (unexpected length).')
+    if digest.hexdigest() != manifest.get('sha256'):
         raise ValidationError('The backup file is damaged (checksum mismatch).')
-    return manifest, payload
+    return manifest
+
+
+def open_backup(content, password=''):
+    """Validate backup bytes and return (manifest, database bytes). For small files and tests."""
+    handle, path = tempfile.mkstemp(suffix='.sqlite3', dir=staging_dir())
+    os.close(handle)
+    try:
+        manifest = extract_backup(io.BytesIO(content), password, path)
+        return manifest, Path(path).read_bytes()
+    finally:
+        Path(path).unlink(missing_ok=True)
 
 
 def inspect_database(path):
@@ -212,14 +338,14 @@ def inspect_database(path):
         raise ValidationError('The backup database cannot be read.')
 
 
-def stage_restore(content, password, user):
+def stage_restore(source, password, user):
+    """Extract and check a backup (path or seekable file); return a preview and signed token."""
     for old in staging_dir().glob('*.sqlite3'):
         if time.time() - old.stat().st_mtime > 3600:
             old.unlink(missing_ok=True)
-    manifest, database = open_backup(content, password)
     staged = staging_dir() / f'{secrets.token_hex(16)}.sqlite3'
-    staged.write_bytes(database)
     try:
+        manifest = extract_backup(source, password, staged)
         summary = inspect_database(staged)
     except Exception:
         staged.unlink(missing_ok=True)
@@ -237,7 +363,7 @@ def apply_restore(token, user, actor_label):
     if claim.get('user') != (user.pk if user else None):
         raise ValidationError('The restore preview belongs to another session.')
     staged = staging_dir() / claim['file']
-    if not staged.is_file() or hashlib.sha256(staged.read_bytes()).hexdigest() != claim['sha256']:
+    if not staged.is_file() or file_sha256(staged) != claim['sha256']:
         raise ValidationError('The restore preview expired. Choose the backup file again.')
     if not _restore_lock.acquire(blocking=False):
         raise ValidationError('Another restore is in progress.')
@@ -280,10 +406,9 @@ def local_backup(name):
     return path
 
 
-def download(name, content):
-    response = HttpResponse(content, content_type='application/octet-stream')
-    response['Content-Disposition'] = content_disposition_header(True, name)
-    return response
+def download(name, stream):
+    """Stream an open binary file to the client; FileResponse closes it afterwards."""
+    return FileResponse(stream, as_attachment=True, filename=name, content_type='application/octet-stream')
 
 
 class DesktopOnly(APIView):
@@ -299,7 +424,7 @@ class Backups(DesktopOnly):
         if name:
             path = local_backup(name)
             audit(request.user, 'system.backup_downloaded', name)
-            return download(name, path.read_bytes())
+            return download(name, open(path, 'rb'))
         return Response({'backups': list_backups(), 'automatic_keep': AUTOMATIC_KEEP, 'folder': str(backups_dir())})
 
     def post(self, request):
@@ -309,18 +434,29 @@ class Backups(DesktopOnly):
             raise ValidationError({'password': ['Use at least 10 characters for a backup password.']})
         if password != str(request.data.get('confirm_password', '')):
             raise ValidationError({'confirm_password': ['Passwords do not match.']})
-        name, content, _ = build_backup('manual', password)
-        audit(request.user, 'system.backup_created', name, encrypted=bool(password), size=len(content))
-        return download(name, content)
+        # Deleted automatically when the response finishes streaming.
+        stream = tempfile.TemporaryFile(dir=backups_dir())
+        try:
+            write_backup('manual', stream, password)
+            size = stream.tell()
+            stream.seek(0)
+        except Exception:
+            stream.close()
+            raise
+        name = backup_name('manual')
+        audit(request.user, 'system.backup_created', name, encrypted=bool(password), size=size)
+        return download(name, stream)
 
 
 def uploaded_backup(request):
+    """A local copy's path, or the uploaded file (Django spools large uploads to disk)."""
     if request.data.get('name'):
-        return local_backup(request.data['name']).read_bytes()
+        return local_backup(request.data['name'])
     upload = request.FILES.get('file')
     if not upload:
         raise ValidationError('Choose a backup file.')
-    return upload.read()
+    upload.seek(0)
+    return upload
 
 
 class Restore(DesktopOnly):
@@ -355,4 +491,5 @@ class SetupRestore(DesktopOnly):
         upload = request.FILES.get('file')
         if not upload:
             raise ValidationError('Choose a backup file.')
-        return Response(stage_restore(upload.read(), str(request.data.get('password', '')), None))
+        upload.seek(0)
+        return Response(stage_restore(upload, str(request.data.get('password', '')), None))

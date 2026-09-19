@@ -48,6 +48,7 @@ void main() {
             'owner': 3,
             'version': 2,
             'approver_role': null,
+            'documents': 2,
           },
         ]),
         200,
@@ -68,6 +69,7 @@ void main() {
         MaterialApp(home: RegisterPositionsPage(masters: masters)),
       );
       await tester.pumpAndSettle();
+      expect(find.textContaining('2 supporting documents'), findsOneWidget);
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
       expect(find.text('Supporting documents'), findsOneWidget);

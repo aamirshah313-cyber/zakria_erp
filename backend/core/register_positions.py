@@ -1,6 +1,6 @@
 """Reviewed openings and transfers. Shared company lock serializes cutoff checks."""
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
@@ -35,6 +35,9 @@ def check_cutoffs(date, source, category=None, project=None, counterparty=None, 
 
 
 class PositionSerializer(serializers.ModelSerializer):
+    # Active supporting documents; present when the list query annotates it.
+    documents = serializers.IntegerField(read_only=True, required=False)
+
     class Meta:
         model = RegisterPosition
         fields = '__all__'
@@ -73,7 +76,8 @@ class Positions(APIView):
     def get(self, request):
         desktop_only()
         require(request.user, 'register.view')
-        return Response(PositionSerializer(RegisterPosition.objects.exclude(status='deleted').order_by('-date','-pk')[:1000], many=True).data)
+        query = RegisterPosition.objects.exclude(status='deleted').annotate(documents=Count('attachments', filter=Q(attachments__withdrawn_at__isnull=True)))
+        return Response(PositionSerializer(query.order_by('-date','-pk')[:1000], many=True).data)
 
     @transaction.atomic
     def post(self, request, pk=None):

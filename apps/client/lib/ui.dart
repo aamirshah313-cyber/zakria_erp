@@ -4,6 +4,14 @@ const ink = Color(0xFF192230),
     teal = Color(0xFF2563EB),
     muted = Color(0xFF697586);
 
+/// "No supporting documents" / "1 supporting document" / "3 supporting documents".
+String documentCount(dynamic count) {
+  final n = count is int ? count : 0;
+  return n == 0
+      ? 'No supporting documents'
+      : '$n supporting document${n == 1 ? '' : 's'}';
+}
+
 /// MZS logo, generated from branding/mzs-logo.svg.
 class BrandLogo extends StatelessWidget {
   final double height;

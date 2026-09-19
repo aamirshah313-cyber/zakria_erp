@@ -1,25 +1,30 @@
-"""Launch the bundled private backend, check readiness/auth, stop only its process."""
+"""Launch the bundled private backend, check readiness/auth, stop only its process.
+
+Uses a temporary empty data folder, so no real database is migrated or changed.
+"""
 from pathlib import Path
 import socket
 import json
+import shutil
 import subprocess
+import tempfile
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 root = Path(__file__).resolve().parents[1]
 service = root / 'artifacts/windows-v2/service/zakaria_service/zakaria_service.exe'
-data = root / 'storage/v2-desktop'
+data = Path(tempfile.mkdtemp(prefix='zakaria-smoke-'))
 with socket.socket() as probe:
     probe.bind(('127.0.0.1', 8765))
-log = root / 'storage/v2-desktop/bundled-service-smoke.log'
+log = data / 'bundled-service-smoke.log'
 with log.open('w', encoding='utf-8') as output:
     process = subprocess.Popen([str(service), '--data-dir', str(data)],
                                cwd=service.parent, stdout=output, stderr=subprocess.STDOUT,
                                creationflags=subprocess.CREATE_NO_WINDOW)
     try:
         ready = False
-        for _ in range(120):
+        for _ in range(360):  # a new database is created first
             if process.poll() is not None:
                 raise RuntimeError('Bundled service exited. See ' + str(log))
             try:
@@ -43,4 +48,5 @@ with log.open('w', encoding='utf-8') as output:
         if process.poll() is None:
             process.terminate()
             process.wait(timeout=15)
-print('Stopped only the smoke-test backend; browser acceptance services remain running.')
+shutil.rmtree(data, ignore_errors=True)
+print('Stopped only the smoke-test backend and removed its temporary data folder.')

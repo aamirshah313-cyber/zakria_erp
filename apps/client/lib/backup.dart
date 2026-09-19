@@ -9,7 +9,8 @@ import 'ui.dart';
 const backupTypes = [
   XTypeGroup(label: 'Zakaria ERP backup', extensions: ['zerp-backup']),
 ];
-const _slow = Duration(minutes: 5);
+// Backups stream to and from disk; allow for large files and slow drives.
+const _slow = Duration(minutes: 60);
 
 /// Readable text from API errors, which arrive as JSON or decoded maps.
 String problem(Object error) {
@@ -51,9 +52,9 @@ Future<bool> restoreBackup(
     file = await openFile(acceptedTypeGroups: backupTypes);
     if (file == null) return false;
   }
-  final bytes = await file?.readAsBytes();
+  final chosen = file;
   Future<Map> stage(String password) async {
-    if (bytes == null) {
+    if (chosen == null) {
       final response = await api.request(
         base,
         method: 'POST',
@@ -62,9 +63,15 @@ Future<bool> restoreBackup(
       );
       return jsonDecode(response.body);
     }
-    return await api.uploadSpreadsheet(base, bytes, file!.name, {
-      'password': password,
-    }, timeout: _slow);
+    // Streams from disk; the backup is never read into memory.
+    return await api.uploadFile(
+      base,
+      chosen.openRead(),
+      await chosen.length(),
+      chosen.name,
+      {'password': password},
+      timeout: _slow,
+    );
   }
 
   if (!context.mounted) return false;
@@ -222,12 +229,12 @@ class _BackupPageState extends State<BackupPage> {
           throw Exception('Choose where to save the backup.');
         }
         try {
-          final bytes = await api.bytes(
+          await api.download(
             '/system/backups/',
+            location.path,
             body: {'password': password.text, 'confirm_password': confirm.text},
             timeout: _slow,
           );
-          await XFile.fromData(bytes).saveTo(location.path);
           savedTo = location.path;
         } catch (e) {
           throw Exception(problem(e));
@@ -246,11 +253,11 @@ class _BackupPageState extends State<BackupPage> {
       );
       if (location == null) return;
       setState(() => busy = true);
-      final bytes = await api.bytes(
+      await api.download(
         '/system/backups/${row['name']}/',
+        location.path,
         timeout: _slow,
       );
-      await XFile.fromData(bytes).saveTo(location.path);
       if (mounted) notice(context, 'Copy saved to ${location.path}');
     } catch (e) {
       if (mounted) notice(context, problem(e));

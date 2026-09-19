@@ -35,12 +35,10 @@ Current priority order. Sections below record what is already delivered; the old
 ### 4. Release hardening (developer)
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
-- Streamed backup/restore for large databases (currently in memory, 2 GB limit).
 - Remove superseded local artifacts (installers 2.1.0 to 2.1.0.7 and older package folders) after the 2.1.0.8 upgrade is confirmed, keeping one previous release for rollback.
 - This computer became very slow after its restart on 19 September (Windows build ~20 minutes instead of 1–2, application window ~30 s after launch instead of ~10 s). Check Windows Update and antivirus activity before timing startup again or judging performance on client hardware.
 - Flutter plugin links need Developer Mode or one elevated `flutter pub get` whenever the Flutter plugin list changes (or the links folder is cleared by a failed build). Decide whether to enable Developer Mode on this build computer.
-- Show opening/transfer supporting-document counts in register reports and data management, as receipts and payments already do.
-- Write a short release checklist (build, installer, APK, checks, GitHub Release upload) so releases do not depend on this session's notes.
+- Build and publish 2.1.0.9 with streamed backups and document counts, following docs/RELEASING.md.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
@@ -67,6 +65,14 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 ## V2.1 — current increment
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
+
+## Streamed backups, document counts, release checklist — 19 September 2026 (not yet released)
+
+- **Streamed backup and restore:** backups stream through files on disk in the service and the application, removing the 2 GB in-memory limit; free disk space is checked first with a readable message. Backup format 2 encrypts in authenticated 4 MB chunks (chunk number and final-chunk flag bound into each tag) plus a whole-file SHA-256; format 1 backups from 2.1.0.5–2.1.0.8 still restore. The local service accepts restore uploads up to 64 GB, spooled to the data drive.
+- **Supporting-document counts** for openings and transfers: shown on the openings/transfers list and in data management (also for receipts and payments), and transfer rows in register reports now count their active documents instead of 0. Withdrawn documents are not counted.
+- **Release checklist:** docs/RELEASING.md. scripts/check_bundled_v2_service.py now uses a temporary empty data folder instead of storage/v2-desktop, so it never migrates real data.
+
+Verification: 92 backend tests (4 new format-2 tests: multi-chunk round trip; truncated, reordered and shortened chunks rejected; format 1 compatibility; low disk space; plus 1 document-count test) and 28 Flutter tests (streamed download, failed download leaves no file, streamed upload; document-count wording). A live run through the waitress service with a 40.6 MB database: encrypted format-2 backup in 11 chunks downloaded in 1.5 s, restore preview in 1.2 s, all 40 MB restored byte-for-byte, staging cleaned. Not yet built into an installer.
 
 ## Supporting documents on openings and transfers, startup window — 17 September 2026
 

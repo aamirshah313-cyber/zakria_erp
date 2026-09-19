@@ -10,7 +10,7 @@ PDF = b'%PDF-1.4 opening statement'
 
 
 @override_settings(V2_DESKTOP=True, PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
-class PositionEvidenceTests(TestCase):
+class PositionTestBase(TestCase):
     def setUp(self):
         maker_role = Role.objects.create(name='Maker', permissions=['register.view', 'register.create'])
         self.review_role = Role.objects.create(name='Reviewer', permissions=['register.view', 'register.approve'])
@@ -35,6 +35,9 @@ class PositionEvidenceTests(TestCase):
         path = f"/api/register/positions/{row['id']}/attachments/"
         return self.client.post(path, {'version': row['version'] if version is None else version, 'file': SimpleUploadedFile(name, content)}, format='multipart')
 
+
+@override_settings(V2_DESKTOP=True, PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class PositionEvidenceTests(PositionTestBase):
     def test_transfer_draft_documents_can_be_added_viewed_and_withdrawn(self):
         row = self.position()
         added = self.upload(row)
@@ -87,3 +90,33 @@ class PositionEvidenceTests(TestCase):
     @override_settings(V2_DESKTOP=False)
     def test_absent_outside_desktop_mode(self):
         self.assertEqual(self.client.get('/api/register/positions/1/attachments/').status_code, 404)
+
+
+@override_settings(V2_DESKTOP=True, PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class DocumentCountTests(PositionTestBase):
+    """Active supporting-document counts for openings and transfers."""
+
+    def test_counts_exclude_withdrawn_documents_everywhere(self):
+        row = self.position()
+        first = self.upload(row).data
+        second = self.upload(row, 'second.pdf', PDF, version=first['version']).data
+        path = f"/api/register/positions/{row['id']}/attachments/{first['id']}/"
+        self.client.post(path, {'version': second['version'], 'reason': 'Duplicate page'}, format='json')
+        listed = next(r for r in self.client.get('/api/register/positions/').data if r['id'] == row['id'])
+        self.assertEqual(listed['documents'], 1)
+        self.maker.role.permissions += ['register.delete']
+        self.maker.role.save()
+        data = self.client.get('/api/register/data-management/?kind=positions').data['rows']
+        self.assertEqual(next(r for r in data if r['id'] == row['id'])['documents'], 1)
+        current = self.client.get(f"/api/register/positions/{row['id']}/attachments/").data['version']
+        submitted = self.client.post(f"/api/register/positions/{row['id']}/", {'action': 'submit', 'version': current}, format='json').data
+        self.client.force_authenticate(self.reviewer)
+        self.reviewer.role.permissions += ['register.export']
+        self.reviewer.role.save()
+        confirmed = self.client.post(f"/api/register/positions/{row['id']}/", {'action': 'confirm', 'version': submitted['version']}, format='json')
+        self.assertEqual(confirmed.status_code, 200, confirmed.data)
+        report = self.client.post('/api/register/reports/', {'columns': ['reference', 'evidence']}, format='json')
+        self.assertEqual(report.status_code, 200, report.data)
+        rows = [r for r in report.data['rows'] if r['reference'] == f"TRF-{row['id']:06d}"]
+        self.assertTrue(rows)
+        self.assertEqual({r['evidence'] for r in rows}, {1})
