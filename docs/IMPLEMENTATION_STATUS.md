@@ -1,4 +1,4 @@
-# Implementation status — 17 September 2026
+# Implementation status — 19 September 2026
 
 ## Current release
 
@@ -7,7 +7,7 @@
 | Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.8.exe (41,686,687 bytes) | Built; startup window checked on a scratch copy; not yet installed over the existing installation |
 | Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260919-212353/ (+ .zip) | Built; runs against storage/v2-desktop test data |
 | Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+8-debug.apk | Built and package-checked; cannot sign in until a reachable server exists |
-| Downloads | GitHub Release v2.1.0.8 on aamirshah313-cyber/zakria_erp (private) | Installer, portable ZIP and APK |
+| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.8 (private) | Installer, portable ZIP and APK uploaded; tag v2.1.0.8 = 80f1b77 |
 
 Tests at this release: 87 backend tests and all 24 Flutter tests pass. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
@@ -21,6 +21,7 @@ Current priority order. Sections below record what is already delivered; the old
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
 - Close the application and confirm zakaria_service.exe stops with it.
+- Attach a statement to a draft opening and a draft transfer (record menu: Supporting documents), submit them, and confirm the documents lock and remain viewable to the reviewer.
 - Install the debug APK on a test phone: check the launcher icon, sign-in logo and that Connection settings opens (sign-in waits for task 7).
 
 ### 2. Move acceptance data into the installed application
@@ -36,6 +37,10 @@ Current priority order. Sections below record what is already delivered; the old
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
 - Streamed backup/restore for large databases (currently in memory, 2 GB limit).
 - Remove superseded local artifacts (installers 2.1.0 to 2.1.0.7 and older package folders) after the 2.1.0.8 upgrade is confirmed, keeping one previous release for rollback.
+- This computer became very slow after its restart on 19 September (Windows build ~20 minutes instead of 1–2, application window ~30 s after launch instead of ~10 s). Check Windows Update and antivirus activity before timing startup again or judging performance on client hardware.
+- Flutter plugin links need Developer Mode or one elevated `flutter pub get` whenever the Flutter plugin list changes (or the links folder is cleared by a failed build). Decide whether to enable Developer Mode on this build computer.
+- Show opening/transfer supporting-document counts in register reports and data management, as receipts and payments already do.
+- Write a short release checklist (build, installer, APK, checks, GitHub Release upload) so releases do not depend on this session's notes.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
@@ -50,7 +55,7 @@ Current priority order. Sections below record what is already delivered; the old
 ### 7. Android access (user decisions required)
 - Decide how phones reach data: a LAN server mode on the Windows PC (needs deliberate network exposure and a firewall rule on trusted Wi-Fi) or an HTTPS-hosted server. Until then the APK cannot sign in.
 - Adapt the service for the chosen route: listen beyond 127.0.0.1 only when explicitly configured, allowed hosts for that address, HTTPS or trusted-network rules, and login rate limits suited to network exposure.
-- For wider distribution: create a release signing key (backed up outside git), build a release APK or AAB split per ABI (the debug APK is 194 MB), and test on real phones.
+- For wider distribution: create a release signing key (backed up outside git), build a release APK or AAB split per ABI (the debug APK is 164 MB), and test on real phones.
 
 ### 8. Remaining V2 scope
 - Full historical migration once the client supplies original workbooks; reconcile the PKR 4,409,259 difference between the main receipts total (59,202,802) and the receipt summary (63,612,061) first.
