@@ -1,11 +1,13 @@
 #ifndef ZAKARIA_DESKTOP_SERVICE_H_
 #define ZAKARIA_DESKTOP_SERVICE_H_
 #include <windows.h>
+#include <iphlpapi.h>
 #include <shlobj.h>
 #include <winhttp.h>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "startup_splash.h"
 
@@ -20,6 +22,7 @@ class DesktopService {
   }
 
   bool Start() {
+    StartupSplash::Instance();  // Starts the one-second "slow launch" clock.
     wchar_t buffer[32768];
     DWORD length = GetModuleFileNameW(nullptr, buffer, 32768);
     if (!length || length == 32768) return Fail(L"Cannot locate the application folder.");
@@ -61,7 +64,7 @@ class DesktopService {
     if (data.find(L'"') != std::wstring::npos || !std::filesystem::path(data).is_absolute()) return Fail(L"The V2 data-folder configuration is invalid.");
     log_ = (std::filesystem::path(data) / L"logs" / L"service.log").wstring();
     // Refuse a occupied port rather than attaching to an unrelated local server.
-    if (Healthy()) return Fail(L"A desktop service is already using port 8765. Close the earlier desktop service before opening this package.");
+    if (Listening(0) && Healthy()) return Fail(L"A desktop service is already using port 8765. Close the earlier desktop service before opening this package.");
     job_ = CreateJobObjectW(nullptr, nullptr);
     JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
     limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
@@ -81,12 +84,16 @@ class DesktopService {
     CloseHandle(process.hThread);
     // First run and upgrades create or back up the database before listening.
     // Quick starts finish before the splash appears; slower ones show progress.
-    StartupSplash splash;
-    for (int attempt = 0; attempt < 600; ++attempt) {
-      if (attempt == 4) splash.Show();
+    // Timing uses the clock: a refused loopback connection can block ~2 s, so
+    // the HTTP check runs only once our own process listens on the port.
+    auto& splash = StartupSplash::Instance();
+    const DWORD service_pid = GetProcessId(process_);
+    const ULONGLONG begun = GetTickCount64();
+    while (GetTickCount64() - begun < 180000) {
+      splash.ShowIfSlow();
       splash.Pump();
-      if (Healthy()) return true;
-      if (MsgWaitForMultipleObjects(1, &process_, FALSE, 300, QS_ALLINPUT) == WAIT_OBJECT_0) break;
+      if (Listening(service_pid) && Healthy()) return true;
+      if (MsgWaitForMultipleObjects(1, &process_, FALSE, 200, QS_ALLINPUT) == WAIT_OBJECT_0) break;
     }
     splash.Close();
     const std::wstring message = L"The desktop service could not start. Details are in:\n" + log_;
@@ -98,6 +105,23 @@ class DesktopService {
   std::wstring log_;
   static bool Fail(const wchar_t* message) {
     MessageBoxW(nullptr, message, L"Muhammad Zakaria and Sons", MB_OK | MB_ICONINFORMATION);
+    return false;
+  }
+  // True when process `pid` (any process if 0) has a TCP listener on port 8765 (IPv4).
+  static bool Listening(DWORD pid) {
+    const ULONG kIpv4 = 2;  // AF_INET
+    DWORD size = 0;
+    GetExtendedTcpTable(nullptr, &size, FALSE, kIpv4, TCP_TABLE_OWNER_PID_LISTENER, 0);
+    std::vector<BYTE> buffer(size);
+    if (size == 0 || GetExtendedTcpTable(buffer.data(), &size, FALSE, kIpv4, TCP_TABLE_OWNER_PID_LISTENER, 0) != NO_ERROR) {
+      return true;  // Table unavailable: fall back to the HTTP check.
+    }
+    const auto table = reinterpret_cast<PMIB_TCPTABLE_OWNER_PID>(buffer.data());
+    for (DWORD i = 0; i < table->dwNumEntries; ++i) {
+      const DWORD network = table->table[i].dwLocalPort;
+      const DWORD port = ((network & 0xFF) << 8) | ((network >> 8) & 0xFF);
+      if (port == 8765 && (pid == 0 || table->table[i].dwOwningPid == pid)) return true;
+    }
     return false;
   }
   static bool Healthy() {

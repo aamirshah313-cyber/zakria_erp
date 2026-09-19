@@ -4,19 +4,19 @@
 
 | Item | Location | State |
 |---|---|---|
-| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.7.exe | Built and icon-checked; not yet installed or run |
-| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260917-041523/ | Built; runs against storage/v2-desktop test data |
-| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+7-debug.apk | Built and package-checked; cannot sign in until a reachable server exists |
-| Source | GitHub aamirshah313-cyber/zakria_erp (private), main | Pushed at 78ff4aa |
+| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.8.exe (41,686,687 bytes) | Built; startup window checked on a scratch copy; not yet installed over the existing installation |
+| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260919-212353/ (+ .zip) | Built; runs against storage/v2-desktop test data |
+| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+8-debug.apk | Built and package-checked; cannot sign in until a reachable server exists |
+| Downloads | GitHub Release v2.1.0.8 on aamirshah313-cyber/zakria_erp (private) | Installer, portable ZIP and APK |
 
-Tests at this release: 81 backend tests pass; 22 of 23 Flutter tests pass (known workspace_admin_test failure). Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
+Tests at this release: 87 backend tests and all 24 Flutter tests pass. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
 ## Next tasks
 
 Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
 
 ### 1. Verify the latest release on this computer (user and developer)
-- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.7.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts.
+- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.8.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
 - Check the MZS logo in the installer wizard, the Start menu/taskbar icon, the sign-in screen, the workspace sidebar, and a PDF, Excel and PNG report header.
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
@@ -35,8 +35,7 @@ Current priority order. Sections below record what is already delivered; the old
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
 - Streamed backup/restore for large databases (currently in memory, 2 GB limit).
-- Exercise backup/restore inside the frozen service once port 8765 is free.
-- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.6 and older package folders) after the 2.1.0.7 upgrade is confirmed, keeping one previous release for rollback.
+- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.7 and older package folders) after the 2.1.0.8 upgrade is confirmed, keeping one previous release for rollback.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
@@ -68,11 +67,11 @@ Data management, cash-basis income/expense classification, expanded report filte
 
 Openings and internal transfers now take supporting documents like receipts and payments: each record's menu has **Supporting documents** (PNG, JPEG or PDF up to 5 MB, 10 per record including withdrawn files, only the preparer on the current draft, withdrawal with reason, private authenticated download, audit events carrying the position and kind). Migration 0010 links attachments to either one entry or one position, enforced by a database constraint; the service backs up the database before applying it.
 
-The Windows launcher shows a small "Starting Zakaria ERP…" window with the logo and elapsed seconds when the service is not ready within about a second (first run, database upgrade, slow computer), and closes it before the main window or any error message appears.
+The Windows launcher shows a small "Starting Zakaria ERP…" window with the logo and elapsed seconds when launch takes more than a second (first run, database upgrade, slow computer). It stays until the main window is actually visible (Flutter shows it only after its first frame), and closes before any error message. The launcher now checks the Windows listening-port table before HTTP health checks, because a refused loopback connection blocks for about two seconds; this also removed a two-second delay from every launch. Windows sources compile as UTF-8.
 
 Also: the workspace sidebar uses a Material background, fixing the long-failing workspace_admin_test at 1100 px without changing golden images; branding tools are listed in branding/requirements-branding.txt.
 
-Verification: 87 backend tests (6 new position-document tests including the database constraint) and all 24 Flutter tests pass (1 new supporting-documents screen test).
+Verification: 87 backend tests (6 new position-document tests including the database constraint) and all 24 Flutter tests pass (1 new supporting-documents screen test). The startup window was captured from a scratch copy of the 2.1.0.8 build: shown at 1.2–1.4 s, closed only once the main window was visible, service stopped when the application closed. Backup and restore were exercised end to end inside the frozen service (encrypted backup, wrong-password rejection, preview, restore, old session rejected, pre-restore copy, staging cleaned). The Android server address uses an app method channel instead of shared_preferences; adding that plugin had required recreating Flutter plugin links with one elevated flutter pub get, since Developer Mode is off.
 
 ## Android test APK — 17 September 2026
 

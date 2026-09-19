@@ -6,13 +6,30 @@
 #include "resource.h"
 
 // Small "Starting…" window shown while the bundled service prepares or
-// upgrades the database, so a slow first run does not look like a failed open.
+// upgrades the database and until the main window first appears, so a slow
+// start does not look like a failed open. It appears only after one second.
 class StartupSplash {
  public:
+  static StartupSplash& Instance() {
+    static StartupSplash splash;
+    return splash;
+  }
   ~StartupSplash() { Close(); }
 
+  // Shows the window once launch has taken longer than a second.
+  void ShowIfSlow() {
+    if (GetTickCount64() - launched_ > 1000) Show();
+  }
+
+  // After the main window is created: keep the splash until it is visible.
+  void CloseWhenVisible(HWND main_window) {
+    main_window_ = main_window;
+    SetTimer(nullptr, 0, 100, Tick);
+  }
+
   void Show() {
-    if (window_) return;
+    if (attempted_) return;
+    attempted_ = true;
     const HINSTANCE instance = GetModuleHandleW(nullptr);
     WNDCLASSW window_class{};
     window_class.lpfnWndProc = Procedure;
@@ -35,13 +52,19 @@ class StartupSplash {
     UpdateWindow(window_);
   }
 
-  // Keeps the window painted and responsive while the caller waits.
+  // Keeps the window painted and responsive while the caller waits outside
+  // a message loop (the service start-up wait).
   void Pump() {
     MSG message;
     while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
       TranslateMessage(&message);
       DispatchMessageW(&message);
     }
+    Refresh();
+  }
+
+  // Repaints the elapsed seconds when they change.
+  void Refresh() {
     if (!window_) return;
     const ULONGLONG seconds = (GetTickCount64() - started_) / 1000;
     if (seconds != shown_seconds_) {
@@ -57,8 +80,22 @@ class StartupSplash {
 
  private:
   static constexpr const wchar_t* kClassName = L"ZakariaERPStartupSplash";
-  HWND window_ = nullptr;
-  ULONGLONG started_ = 0, shown_seconds_ = 0;
+  HWND window_ = nullptr, main_window_ = nullptr;
+  bool attempted_ = false;
+  ULONGLONG launched_ = GetTickCount64(), started_ = 0, shown_seconds_ = 0;
+
+  static void CALLBACK Tick(HWND, UINT, UINT_PTR timer, DWORD) {
+    auto& splash = Instance();
+    const bool visible = splash.main_window_ && IsWindowVisible(splash.main_window_);
+    if (visible || GetTickCount64() - splash.launched_ > 300000) {
+      KillTimer(nullptr, timer);
+      splash.Close();
+      return;
+    }
+    // Already inside the main message loop: do not pump messages here.
+    splash.ShowIfSlow();
+    splash.Refresh();
+  }
 
   void Paint(HWND window) {
     PAINTSTRUCT paint;
@@ -78,7 +115,7 @@ class StartupSplash {
     SelectObject(dc, body);
     SetTextColor(dc, RGB(0x69, 0x75, 0x86));
     RECT detail{116, 68, 440, 112};
-    DrawTextW(dc, L"Preparing the database. After installing or upgrading this can take a minute.", -1, &detail, DT_LEFT | DT_WORDBREAK);
+    DrawTextW(dc, L"Preparing the database and workspace. After installing or upgrading this can take a minute.", -1, &detail, DT_LEFT | DT_WORDBREAK);
     const std::wstring elapsed = L"Please wait · " + std::to_wstring(shown_seconds_) + L" s";
     RECT timer{116, 118, 440, 140};
     DrawTextW(dc, elapsed.c_str(), -1, &timer, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
