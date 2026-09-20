@@ -1,0 +1,10 @@
+{
+  "format": "zakaria-erp-backup",
+  "format_version": 2,
+  "app_version": "2.1.0",
+  "kind": "manual",
+  "created_at": "2026-09-20T19:55:51+05:00",
+  "size": 569344,
+  "encrypted": false,
+  "sha256": "4a6cb4903795a418977111b81a1c24ed5bb1c2ca2fb11bd6deb684c8b3f8d1f8"
+}

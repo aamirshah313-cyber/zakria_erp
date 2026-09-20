@@ -1,0 +1,11 @@
+{
+  "id": 2,
+  "name": "Bank current account",
+  "kind": "bank",
+  "active": true,
+  "account_title": "Muhammad Zakaria and Sons",
+  "bank": "Example Bank Limited",
+  "branch": "Blue Area, Islamabad",
+  "account_number": "0123456789",
+  "iban": "PK36SCBL0000001123456702"
+}

@@ -1,0 +1,18 @@
+{
+  "rows": [
+    {
+      "id": 1,
+      "name": "stationery-bill.png",
+      "mime": "image/png",
+      "size": 86,
+      "sha256": "f69c4482025aedd60123410b351299a169bf8ed93cd4f2e5e07a357a56adedef",
+      "uploaded_by__username": "finance.officer",
+      "uploaded_at": "2026-09-20 14:55:46.686416+00:00",
+      "withdrawn_at": null,
+      "withdrawal_reason": ""
+    }
+  ],
+  "version": 4,
+  "status": "draft",
+  "owner": 2
+}

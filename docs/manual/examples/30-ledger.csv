@@ -1,0 +1,31 @@
+﻿Company,Muhammad Zakaria and Sons
+Report,Transaction activity report
+Period,Custom: 2026-07-01 to 2026-09-30
+Filters,"All categories, projects, parties and cash/bank sources"
+Generated,2026-09-20 19:55:48 PKT
+Generated for,finance.officer
+Opening (PKR),0.00
+Receipts (PKR),1325000.00
+Payments (PKR),826150.00
+Closing (PKR),498850.00
+Net movement (PKR),498850.00
+Transfers in (PKR),150000.00
+Transfers out (PKR),150000.00
+Basis,"Receipts less payments, plus transfers in less transfers out. Opening includes earlier recorded movement. Independent openings apply only to one selected account/category/project/party without additional filters; openings from different dimensions are never added together. Current revision excludes cancelled records. This is not profit, debt or a reconciled bank balance. Grouped detail can contain allocation rows from the same transaction."
+Header,
+Footer,
+
+Register reference,Date,Organization / person,Category,Project / contract,Cash / bank source,Receipts (PKR),Payments (PKR),Transfers in (PKR),Transfers out (PKR),Running balance (PKR),Remarks
+REG-000001,2026-07-04,Capital Builders (Pvt) Ltd,Client receipts,G-11 Markaz office fit-out,Main cash box,400000.00,0.00,0.00,0.00,400000.00,First running bill against PO-2026-114.
+REG-000002,2026-07-06,Al-Rehman Traders,Materials,G-11 Markaz office fit-out,Main cash box,0.00,135500.00,0.00,0.00,264500.00,Cement and sanitary items for the fit-out.
+REG-000003,2026-07-18,Riaz Masood,Labour and wages,G-11 Markaz office fit-out,Main cash box,0.00,86000.00,0.00,0.00,178500.00,Weekly wages for eight workers.
+REG-000004,2026-08-02,Capital Builders (Pvt) Ltd,Client receipts,Boundary wall — Phase II,Bank current account,650000.00,0.00,0.00,0.00,828500.00,Mobilisation advance for the boundary wall.
+REG-000005,2026-08-09,Attock filling station,Fuel and transport,Boundary wall — Phase II,Main cash box,0.00,24300.00,0.00,0.00,804200.00,Fuel for the site pickup.
+REG-000006,2026-08-23,Example Utilities,Office and administration,Unassigned,Bank current account,0.00,38750.00,0.00,0.00,765450.00,Office electricity for August.
+REG-000007,2026-09-05,Riaz Masood,Labour and wages,Boundary wall — Phase II,Main cash box,0.00,94000.00,0.00,0.00,671450.00,Wages for the wall foundation week.
+REG-000008,2026-09-12,Al-Rehman Traders,Materials,"G-11 Markaz office fit-out, Boundary wall — Phase II",Bank current account,0.00,300000.00,0.00,0.00,371450.00,One supplier bill covering both sites; split by delivery challan.
+TRF-000002,2026-09-15,Own-account transfer,Internal transfer,Unassigned,Main cash box → Bank current account,0.00,0.00,150000.00,150000.00,371450.00,Cash banked after the September collection.
+REG-000009,2026-09-19,Blue Area Stationers,Office and administration,Unassigned,Main cash box,0.00,12400.00,0.00,0.00,359050.00,Printing and stationery for the site office.
+REG-000011,2026-09-22,Capital Builders (Pvt) Ltd,Client receipts,Unassigned,Bank current account,275000.00,0.00,0.00,0.00,634050.00,
+REG-000012,2026-09-24,Al-Rehman Traders,Materials,Unassigned,Main cash box,0.00,64200.00,0.00,0.00,569850.00,
+REG-000013,2026-09-26,Riaz Masood,Labour and wages,Unassigned,Main cash box,0.00,71000.00,0.00,0.00,498850.00,

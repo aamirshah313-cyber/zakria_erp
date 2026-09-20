@@ -1,0 +1,400 @@
+[
+  {
+    "id": 87,
+    "created_at": "2026-09-20 14:55:51.186083+00:00",
+    "actor__username": "audit.reviewer",
+    "action": "account.login",
+    "target": "4",
+    "details": {}
+  },
+  {
+    "id": 86,
+    "created_at": "2026-09-20 14:55:49.879873+00:00",
+    "actor__username": "zakaria.admin",
+    "action": "register.data_remove",
+    "target": "entries:15",
+    "details": {
+      "before": "draft",
+      "after": "deleted",
+      "reason": "Created by mistake while testing; no financial effect.",
+      "revision": "2"
+    }
+  },
+  {
+    "id": 85,
+    "created_at": "2026-09-20 14:55:49.812238+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_created",
+    "target": "15",
+    "details": {}
+  },
+  {
+    "id": 84,
+    "created_at": "2026-09-20 14:55:49.722450+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.report_saved",
+    "target": "1",
+    "details": {}
+  },
+  {
+    "id": 83,
+    "created_at": "2026-09-20 14:55:49.676605+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.report_exported",
+    "target": "csv",
+    "details": {
+      "count": 13,
+      "view": "detail"
+    }
+  },
+  {
+    "id": 82,
+    "created_at": "2026-09-20 14:55:49.613794+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.report_exported",
+    "target": "png",
+    "details": {
+      "count": 13,
+      "view": "detail"
+    }
+  },
+  {
+    "id": 81,
+    "created_at": "2026-09-20 14:55:48.958792+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.report_exported",
+    "target": "xlsx",
+    "details": {
+      "count": 13,
+      "view": "detail"
+    }
+  },
+  {
+    "id": 80,
+    "created_at": "2026-09-20 14:55:48.803783+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.report_exported",
+    "target": "pdf",
+    "details": {
+      "count": 13,
+      "view": "detail"
+    }
+  },
+  {
+    "id": 79,
+    "created_at": "2026-09-20 14:55:48.079814+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.ledger_exported",
+    "target": "csv",
+    "details": {
+      "count": 13
+    }
+  },
+  {
+    "id": 78,
+    "created_at": "2026-09-20 14:55:47.924607+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "14",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 77,
+    "created_at": "2026-09-20 14:55:47.876970+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_created",
+    "target": "14",
+    "details": {}
+  },
+  {
+    "id": 76,
+    "created_at": "2026-09-20 14:55:47.812376+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "13",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 75,
+    "created_at": "2026-09-20 14:55:47.763240+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "13",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 74,
+    "created_at": "2026-09-20 14:55:47.679943+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "12",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 73,
+    "created_at": "2026-09-20 14:55:47.629962+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "12",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 72,
+    "created_at": "2026-09-20 14:55:47.546974+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "11",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 71,
+    "created_at": "2026-09-20 14:55:47.480191+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "11",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 70,
+    "created_at": "2026-09-20 14:55:47.412734+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.import_completed",
+    "target": "1",
+    "details": {
+      "count": 3
+    }
+  },
+  {
+    "id": 69,
+    "created_at": "2026-09-20 14:55:47.412734+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_imported",
+    "target": "13",
+    "details": {
+      "batch": 1,
+      "source_row": 4
+    }
+  },
+  {
+    "id": 68,
+    "created_at": "2026-09-20 14:55:47.406865+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_imported",
+    "target": "12",
+    "details": {
+      "batch": 1,
+      "source_row": 3
+    }
+  },
+  {
+    "id": 67,
+    "created_at": "2026-09-20 14:55:47.400867+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_imported",
+    "target": "11",
+    "details": {
+      "batch": 1,
+      "source_row": 2
+    }
+  },
+  {
+    "id": 66,
+    "created_at": "2026-09-20 14:55:47.312599+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.import_reviewed",
+    "target": "1",
+    "details": {
+      "version": 2,
+      "ready": true
+    }
+  },
+  {
+    "id": 65,
+    "created_at": "2026-09-20 14:55:47.241052+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.import_staged",
+    "target": "1",
+    "details": {
+      "source_hash": "a2e3e16cbb38b9fc46d4a7a9b5f6ac4cee36bd3f3367626943682119e2f31f4e",
+      "sheet": "CSV",
+      "count": 4
+    }
+  },
+  {
+    "id": 64,
+    "created_at": "2026-09-20 14:55:47.186296+00:00",
+    "actor__username": "zakaria.admin",
+    "action": "register.cancel",
+    "target": "10",
+    "details": {
+      "version": 4
+    }
+  },
+  {
+    "id": 63,
+    "created_at": "2026-09-20 14:55:47.130042+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "10",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 62,
+    "created_at": "2026-09-20 14:55:47.087899+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "10",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 61,
+    "created_at": "2026-09-20 14:55:47.032481+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_created",
+    "target": "10",
+    "details": {}
+  },
+  {
+    "id": 60,
+    "created_at": "2026-09-20 14:55:46.972388+00:00",
+    "actor__username": "general.manager",
+    "action": "register.position_confirm",
+    "target": "2",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 59,
+    "created_at": "2026-09-20 14:55:46.919123+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.position_submit",
+    "target": "2",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 58,
+    "created_at": "2026-09-20 14:55:46.873788+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.position_created",
+    "target": "2",
+    "details": {}
+  },
+  {
+    "id": 57,
+    "created_at": "2026-09-20 14:55:46.814597+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "9",
+    "details": {
+      "version": 6
+    }
+  },
+  {
+    "id": 56,
+    "created_at": "2026-09-20 14:55:46.763477+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "9",
+    "details": {
+      "version": 5
+    }
+  },
+  {
+    "id": 55,
+    "created_at": "2026-09-20 14:55:46.688391+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.evidence_uploaded",
+    "target": "9",
+    "details": {
+      "sha256": "f69c4482025aedd60123410b351299a169bf8ed93cd4f2e5e07a357a56adedef",
+      "attachment_id": 1
+    }
+  },
+  {
+    "id": 54,
+    "created_at": "2026-09-20 14:55:46.631265+00:00",
+    "actor__username": "general.manager",
+    "action": "register.return",
+    "target": "9",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 53,
+    "created_at": "2026-09-20 14:55:46.580118+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "9",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 52,
+    "created_at": "2026-09-20 14:55:46.529725+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_created",
+    "target": "9",
+    "details": {}
+  },
+  {
+    "id": 51,
+    "created_at": "2026-09-20 14:55:46.480064+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "8",
+    "details": {
+      "version": 3
+    }
+  },
+  {
+    "id": 50,
+    "created_at": "2026-09-20 14:55:46.421936+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.submit",
+    "target": "8",
+    "details": {
+      "version": 2
+    }
+  },
+  {
+    "id": 49,
+    "created_at": "2026-09-20 14:55:46.368717+00:00",
+    "actor__username": "finance.officer",
+    "action": "register.draft_created",
+    "target": "8",
+    "details": {}
+  },
+  {
+    "id": 48,
+    "created_at": "2026-09-20 14:55:46.306874+00:00",
+    "actor__username": "general.manager",
+    "action": "register.confirm",
+    "target": "7",
+    "details": {
+      "version": 3
+    }
+  }
+]

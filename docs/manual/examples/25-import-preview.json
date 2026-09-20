@@ -1,0 +1,203 @@
+{
+  "id": 1,
+  "filename": "september-cash-book.csv",
+  "file_hash": "a2e3e16cbb38b9fc46d4a7a9b5f6ac4cee36bd3f3367626943682119e2f31f4e",
+  "sheet": "CSV",
+  "header_row": 1,
+  "headers": [
+    "Date",
+    "Description",
+    "Category",
+    "Cash/bank",
+    "Paid",
+    "Received",
+    "Voucher",
+    "How paid"
+  ],
+  "rows": [
+    {
+      "row": 2,
+      "values": [
+        "2026-09-22",
+        "Capital Builders (Pvt) Ltd",
+        "Client receipts",
+        "Bank current account",
+        "",
+        "275000.00",
+        "IBFT-81004",
+        "transfer"
+      ]
+    },
+    {
+      "row": 3,
+      "values": [
+        "2026-09-24",
+        "Al-Rehman Traders",
+        "Materials",
+        "Main cash box",
+        "64200.00",
+        "",
+        "INV-2477",
+        "cash"
+      ]
+    },
+    {
+      "row": 4,
+      "values": [
+        "2026-09-26",
+        "Riaz Masood",
+        "Labour and wages",
+        "Main cash box",
+        "71000.00",
+        "",
+        "WS-09-4",
+        "cash"
+      ]
+    },
+    {
+      "row": 5,
+      "values": [
+        "TOTAL",
+        "",
+        "",
+        "",
+        "135200.00",
+        "275000.00",
+        "",
+        ""
+      ]
+    }
+  ],
+  "warnings": [],
+  "configuration": {
+    "columns": {
+      "date": 0,
+      "party": 1,
+      "category": 2,
+      "source": 3,
+      "payment": 4,
+      "receipt": 5,
+      "reference": 6,
+      "method": 7
+    },
+    "defaults": {},
+    "amount_mode": "separate",
+    "date_format": "iso",
+    "control_receipt": "275000.00",
+    "control_payment": "135200.00",
+    "exclude": {
+      "5": "Spreadsheet control total row, not a transaction."
+    }
+  },
+  "preview": {
+    "rows": [
+      {
+        "row": 2,
+        "errors": [],
+        "duplicates": [],
+        "excluded": false,
+        "reason": "",
+        "payload": {
+          "party": "Capital Builders (Pvt) Ltd",
+          "reference": "IBFT-81004",
+          "handled_by": "",
+          "remarks": "",
+          "beneficiary": "",
+          "reporting_class": "unclassified",
+          "nature": "unclassified",
+          "date": "2026-09-22",
+          "direction": "receipt",
+          "amount": "275000.00",
+          "category": 1,
+          "source": 2,
+          "project": null,
+          "counterparty": null,
+          "method": "transfer",
+          "request_key": "ae251ef1-274e-5b9a-af2d-d6d71e877f5b"
+        },
+        "labels": {
+          "category": "Client receipts",
+          "source": "Bank current account"
+        }
+      },
+      {
+        "row": 3,
+        "errors": [],
+        "duplicates": [],
+        "excluded": false,
+        "reason": "",
+        "payload": {
+          "party": "Al-Rehman Traders",
+          "reference": "INV-2477",
+          "handled_by": "",
+          "remarks": "",
+          "beneficiary": "",
+          "reporting_class": "unclassified",
+          "nature": "unclassified",
+          "date": "2026-09-24",
+          "direction": "payment",
+          "amount": "64200.00",
+          "category": 2,
+          "source": 1,
+          "project": null,
+          "counterparty": null,
+          "method": "cash",
+          "request_key": "9c212eeb-98c1-5e93-814e-78b70e79fbff"
+        },
+        "labels": {
+          "category": "Materials",
+          "source": "Main cash box"
+        }
+      },
+      {
+        "row": 4,
+        "errors": [],
+        "duplicates": [],
+        "excluded": false,
+        "reason": "",
+        "payload": {
+          "party": "Riaz Masood",
+          "reference": "WS-09-4",
+          "handled_by": "",
+          "remarks": "",
+          "beneficiary": "",
+          "reporting_class": "unclassified",
+          "nature": "unclassified",
+          "date": "2026-09-26",
+          "direction": "payment",
+          "amount": "71000.00",
+          "category": 3,
+          "source": 1,
+          "project": null,
+          "counterparty": null,
+          "method": "cash",
+          "request_key": "e6b676f1-229a-58f4-ae6e-0e9f8916b592"
+        },
+        "labels": {
+          "category": "Labour and wages",
+          "source": "Main cash box"
+        }
+      },
+      {
+        "row": 5,
+        "errors": [],
+        "duplicates": [],
+        "excluded": true,
+        "reason": "Spreadsheet control total row, not a transaction.",
+        "payload": {},
+        "labels": {}
+      }
+    ],
+    "totals": {
+      "receipt": "275000.00",
+      "payment": "135200.00"
+    },
+    "errors": [],
+    "ready": true,
+    "included": 3,
+    "excluded": 1
+  },
+  "version": 2,
+  "status": "reviewed",
+  "entries": []
+}

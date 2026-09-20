@@ -1,0 +1,89 @@
+﻿id,created_at,actor__username,action,target,details
+88,2026-09-20 14:55:51.232912+00:00,audit.reviewer,audit.viewed,latest-500,{}
+87,2026-09-20 14:55:51.186083+00:00,audit.reviewer,account.login,4,{}
+86,2026-09-20 14:55:49.879873+00:00,zakaria.admin,register.data_remove,entries:15,"{'before': 'draft', 'after': 'deleted', 'reason': 'Created by mistake while testing; no financial effect.', 'revision': '2'}"
+85,2026-09-20 14:55:49.812238+00:00,finance.officer,register.draft_created,15,{}
+84,2026-09-20 14:55:49.722450+00:00,finance.officer,register.report_saved,1,{}
+83,2026-09-20 14:55:49.676605+00:00,finance.officer,register.report_exported,csv,"{'count': 13, 'view': 'detail'}"
+82,2026-09-20 14:55:49.613794+00:00,finance.officer,register.report_exported,png,"{'count': 13, 'view': 'detail'}"
+81,2026-09-20 14:55:48.958792+00:00,finance.officer,register.report_exported,xlsx,"{'count': 13, 'view': 'detail'}"
+80,2026-09-20 14:55:48.803783+00:00,finance.officer,register.report_exported,pdf,"{'count': 13, 'view': 'detail'}"
+79,2026-09-20 14:55:48.079814+00:00,finance.officer,register.ledger_exported,csv,{'count': 13}
+78,2026-09-20 14:55:47.924607+00:00,finance.officer,register.submit,14,{'version': 2}
+77,2026-09-20 14:55:47.876970+00:00,finance.officer,register.draft_created,14,{}
+76,2026-09-20 14:55:47.812376+00:00,general.manager,register.confirm,13,{'version': 3}
+75,2026-09-20 14:55:47.763240+00:00,finance.officer,register.submit,13,{'version': 2}
+74,2026-09-20 14:55:47.679943+00:00,general.manager,register.confirm,12,{'version': 3}
+73,2026-09-20 14:55:47.629962+00:00,finance.officer,register.submit,12,{'version': 2}
+72,2026-09-20 14:55:47.546974+00:00,general.manager,register.confirm,11,{'version': 3}
+71,2026-09-20 14:55:47.480191+00:00,finance.officer,register.submit,11,{'version': 2}
+70,2026-09-20 14:55:47.412734+00:00,finance.officer,register.import_completed,1,{'count': 3}
+69,2026-09-20 14:55:47.412734+00:00,finance.officer,register.draft_imported,13,"{'batch': 1, 'source_row': 4}"
+68,2026-09-20 14:55:47.406865+00:00,finance.officer,register.draft_imported,12,"{'batch': 1, 'source_row': 3}"
+67,2026-09-20 14:55:47.400867+00:00,finance.officer,register.draft_imported,11,"{'batch': 1, 'source_row': 2}"
+66,2026-09-20 14:55:47.312599+00:00,finance.officer,register.import_reviewed,1,"{'version': 2, 'ready': True}"
+65,2026-09-20 14:55:47.241052+00:00,finance.officer,register.import_staged,1,"{'source_hash': 'a2e3e16cbb38b9fc46d4a7a9b5f6ac4cee36bd3f3367626943682119e2f31f4e', 'sheet': 'CSV', 'count': 4}"
+64,2026-09-20 14:55:47.186296+00:00,zakaria.admin,register.cancel,10,{'version': 4}
+63,2026-09-20 14:55:47.130042+00:00,general.manager,register.confirm,10,{'version': 3}
+62,2026-09-20 14:55:47.087899+00:00,finance.officer,register.submit,10,{'version': 2}
+61,2026-09-20 14:55:47.032481+00:00,finance.officer,register.draft_created,10,{}
+60,2026-09-20 14:55:46.972388+00:00,general.manager,register.position_confirm,2,{'version': 3}
+59,2026-09-20 14:55:46.919123+00:00,finance.officer,register.position_submit,2,{'version': 2}
+58,2026-09-20 14:55:46.873788+00:00,finance.officer,register.position_created,2,{}
+57,2026-09-20 14:55:46.814597+00:00,general.manager,register.confirm,9,{'version': 6}
+56,2026-09-20 14:55:46.763477+00:00,finance.officer,register.submit,9,{'version': 5}
+55,2026-09-20 14:55:46.688391+00:00,finance.officer,register.evidence_uploaded,9,"{'sha256': 'f69c4482025aedd60123410b351299a169bf8ed93cd4f2e5e07a357a56adedef', 'attachment_id': 1}"
+54,2026-09-20 14:55:46.631265+00:00,general.manager,register.return,9,{'version': 3}
+53,2026-09-20 14:55:46.580118+00:00,finance.officer,register.submit,9,{'version': 2}
+52,2026-09-20 14:55:46.529725+00:00,finance.officer,register.draft_created,9,{}
+51,2026-09-20 14:55:46.480064+00:00,general.manager,register.confirm,8,{'version': 3}
+50,2026-09-20 14:55:46.421936+00:00,finance.officer,register.submit,8,{'version': 2}
+49,2026-09-20 14:55:46.368717+00:00,finance.officer,register.draft_created,8,{}
+48,2026-09-20 14:55:46.306874+00:00,general.manager,register.confirm,7,{'version': 3}
+47,2026-09-20 14:55:46.246719+00:00,finance.officer,register.submit,7,{'version': 2}
+46,2026-09-20 14:55:46.200811+00:00,finance.officer,register.draft_created,7,{}
+45,2026-09-20 14:55:46.129267+00:00,general.manager,register.confirm,6,{'version': 3}
+44,2026-09-20 14:55:46.081554+00:00,finance.officer,register.submit,6,{'version': 2}
+43,2026-09-20 14:55:46.033376+00:00,finance.officer,register.draft_created,6,{}
+42,2026-09-20 14:55:45.979347+00:00,general.manager,register.confirm,5,{'version': 3}
+41,2026-09-20 14:55:45.911888+00:00,finance.officer,register.submit,5,{'version': 2}
+40,2026-09-20 14:55:45.863423+00:00,finance.officer,register.draft_created,5,{}
+39,2026-09-20 14:55:45.812699+00:00,general.manager,register.confirm,4,{'version': 3}
+38,2026-09-20 14:55:45.763496+00:00,finance.officer,register.submit,4,{'version': 2}
+37,2026-09-20 14:55:45.710354+00:00,finance.officer,register.draft_created,4,{}
+36,2026-09-20 14:55:45.653444+00:00,general.manager,register.confirm,3,{'version': 3}
+35,2026-09-20 14:55:45.596079+00:00,finance.officer,register.submit,3,{'version': 2}
+34,2026-09-20 14:55:45.546127+00:00,finance.officer,register.draft_created,3,{}
+33,2026-09-20 14:55:45.490388+00:00,general.manager,register.confirm,2,{'version': 3}
+32,2026-09-20 14:55:45.434403+00:00,finance.officer,register.submit,2,{'version': 2}
+31,2026-09-20 14:55:45.386525+00:00,finance.officer,register.draft_created,2,{}
+30,2026-09-20 14:55:45.313021+00:00,general.manager,register.confirm,1,{'version': 3}
+29,2026-09-20 14:55:45.263552+00:00,finance.officer,register.submit,1,{'version': 2}
+28,2026-09-20 14:55:45.221739+00:00,finance.officer,register.draft_created,1,{}
+27,2026-09-20 14:55:45.163841+00:00,general.manager,register.position_confirm,1,{'version': 3}
+26,2026-09-20 14:55:45.108819+00:00,finance.officer,register.position_submit,1,{'version': 2}
+25,2026-09-20 14:55:45.062732+00:00,finance.officer,register.position_created,1,{}
+24,2026-09-20 14:55:45.009077+00:00,general.manager,account.login,3,{}
+23,2026-09-20 14:55:43.129540+00:00,finance.officer,account.login,2,{}
+22,2026-09-20 14:55:41.760798+00:00,zakaria.admin,register.approval_rule_changed,3,{}
+21,2026-09-20 14:55:41.719267+00:00,zakaria.admin,register.master_created,parties:3,{}
+20,2026-09-20 14:55:41.673973+00:00,zakaria.admin,register.master_created,parties:2,{}
+19,2026-09-20 14:55:41.596489+00:00,zakaria.admin,register.master_created,parties:1,{}
+18,2026-09-20 14:55:41.550037+00:00,zakaria.admin,register.master_created,projects:2,{}
+17,2026-09-20 14:55:41.503439+00:00,zakaria.admin,register.master_created,projects:1,{}
+16,2026-09-20 14:55:41.449087+00:00,zakaria.admin,register.master_created,sources:2,{}
+15,2026-09-20 14:55:41.402205+00:00,zakaria.admin,register.master_created,sources:1,{}
+14,2026-09-20 14:55:41.349004+00:00,zakaria.admin,register.master_created,categories:5,{}
+13,2026-09-20 14:55:41.313917+00:00,zakaria.admin,register.master_created,categories:4,{}
+12,2026-09-20 14:55:41.267934+00:00,zakaria.admin,register.master_created,categories:3,{}
+11,2026-09-20 14:55:41.216198+00:00,zakaria.admin,register.master_created,categories:2,{}
+10,2026-09-20 14:55:41.102514+00:00,zakaria.admin,register.master_created,categories:1,{}
+9,2026-09-20 14:55:41.031629+00:00,zakaria.admin,company.updated,1,{}
+8,2026-09-20 14:55:40.951090+00:00,zakaria.admin,user.access_changed,4,"{'status': 'active', 'role': 5}"
+7,2026-09-20 14:55:40.880251+00:00,zakaria.admin,user.access_changed,3,"{'status': 'active', 'role': 3}"
+6,2026-09-20 14:55:40.848109+00:00,zakaria.admin,user.access_changed,2,"{'status': 'active', 'role': 2}"
+5,2026-09-20 14:55:40.774155+00:00,audit.reviewer,account.registered,4,{}
+4,2026-09-20 14:55:39.398829+00:00,general.manager,account.registered,3,{}
+3,2026-09-20 14:55:38.112945+00:00,finance.officer,account.registered,2,{}
+2,2026-09-20 14:55:36.532035+00:00,zakaria.admin,account.login,1,{}
+1,2026-09-20 14:55:35.220756+00:00,zakaria.admin,setup.completed,1,{'source': 'desktop first run'}

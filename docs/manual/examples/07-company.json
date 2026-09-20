@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "name": "Muhammad Zakaria and Sons",
+  "address": "Example Plaza, Blue Area, Islamabad",
+  "city": "Islamabad",
+  "phone": "051-0000000",
+  "email": "accounts@example.com",
+  "ntn": "0000000-0",
+  "strn": "00-00-0000-000-00",
+  "ftn": "",
+  "bank_details": "",
+  "footer": "Example data only — not real company records.",
+  "accent": "#176B61"
+}

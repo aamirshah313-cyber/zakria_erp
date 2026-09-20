@@ -1,0 +1,81 @@
+{
+  "quotations": 0,
+  "invoices": 0,
+  "pending_approvals": 0,
+  "my_submitted": 0,
+  "pending": [],
+  "recent": [],
+  "register": {
+    "receipts": "1325000.00",
+    "payments": "826150.00",
+    "net": "498850.00",
+    "pending_count": 1,
+    "pending": [
+      {
+        "id": 14,
+        "date": "2026-09-20",
+        "direction": "payment",
+        "party": "Attock filling station",
+        "amount": "18600.00",
+        "version": 2,
+        "owner__username": "finance.officer"
+      }
+    ],
+    "monthly": [
+      {
+        "label": "Apr",
+        "period": "2026-04",
+        "receipts": "0",
+        "payments": "0"
+      },
+      {
+        "label": "May",
+        "period": "2026-05",
+        "receipts": "0",
+        "payments": "0"
+      },
+      {
+        "label": "Jun",
+        "period": "2026-06",
+        "receipts": "0",
+        "payments": "0"
+      },
+      {
+        "label": "Jul",
+        "period": "2026-07",
+        "receipts": "400000",
+        "payments": "221500"
+      },
+      {
+        "label": "Aug",
+        "period": "2026-08",
+        "receipts": "650000",
+        "payments": "63050"
+      },
+      {
+        "label": "Sep",
+        "period": "2026-09",
+        "receipts": "0",
+        "payments": "406400"
+      }
+    ],
+    "categories": [
+      {
+        "label": "Materials",
+        "amount": "499700"
+      },
+      {
+        "label": "Labour and wages",
+        "amount": "251000"
+      },
+      {
+        "label": "Office and administration",
+        "amount": "51150"
+      },
+      {
+        "label": "Fuel and transport",
+        "amount": "24300"
+      }
+    ]
+  }
+}

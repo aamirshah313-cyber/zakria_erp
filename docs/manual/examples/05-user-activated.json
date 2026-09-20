@@ -1,0 +1,27 @@
+{
+  "id": 2,
+  "username": "finance.officer",
+  "email": "finance@example.com",
+  "first_name": "",
+  "last_name": "",
+  "phone": "",
+  "status": "active",
+  "role": 2,
+  "role_name": "Finance Manager",
+  "permissions": [
+    "invoice.create",
+    "invoice.issue",
+    "invoice.view",
+    "parties.edit",
+    "parties.view",
+    "quotation.create",
+    "quotation.issue",
+    "quotation.view",
+    "register.create",
+    "register.export",
+    "register.import",
+    "register.view",
+    "reports.export",
+    "reports.view"
+  ]
+}

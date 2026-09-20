@@ -1,0 +1,198 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "code": "CLIENT",
+      "name": "Client receipts",
+      "active": true,
+      "description": "Money received from customers against work done",
+      "parent": null
+    },
+    {
+      "id": 4,
+      "code": "FUEL",
+      "name": "Fuel and transport",
+      "active": true,
+      "description": "Vehicle fuel, delivery charges",
+      "parent": null
+    },
+    {
+      "id": 3,
+      "code": "LAB",
+      "name": "Labour and wages",
+      "active": true,
+      "description": "Daily wages, contractor payments",
+      "parent": null
+    },
+    {
+      "id": 2,
+      "code": "MAT",
+      "name": "Materials",
+      "active": true,
+      "description": "Cement, steel, sanitary and electrical purchases",
+      "parent": null
+    },
+    {
+      "id": 5,
+      "code": "OFF",
+      "name": "Office and administration",
+      "active": true,
+      "description": "Rent, utilities, stationery",
+      "parent": null
+    }
+  ],
+  "sources": [
+    {
+      "id": 2,
+      "name": "Bank current account",
+      "kind": "bank",
+      "active": true,
+      "account_title": "Muhammad Zakaria and Sons",
+      "bank": "Example Bank Limited",
+      "branch": "Blue Area, Islamabad",
+      "account_number": "0123456789",
+      "iban": "PK36SCBL0000001123456702"
+    },
+    {
+      "id": 1,
+      "name": "Main cash box",
+      "kind": "cash",
+      "active": true,
+      "account_title": "",
+      "bank": "",
+      "branch": "",
+      "account_number": "",
+      "iban": ""
+    }
+  ],
+  "parties": [
+    {
+      "id": 2,
+      "name": "Al-Rehman Traders",
+      "kind": "supplier",
+      "entity_type": "organization",
+      "active": true,
+      "email": "",
+      "phone": "",
+      "address": "",
+      "ntn": "",
+      "strn": "",
+      "ftn": "",
+      "created_at": "2026-09-20T19:55:41.672973+05:00"
+    },
+    {
+      "id": 1,
+      "name": "Capital Builders (Pvt) Ltd",
+      "kind": "customer",
+      "entity_type": "organization",
+      "active": true,
+      "email": "",
+      "phone": "051-1111111",
+      "address": "",
+      "ntn": "",
+      "strn": "",
+      "ftn": "",
+      "created_at": "2026-09-20T19:55:41.593510+05:00"
+    },
+    {
+      "id": 3,
+      "name": "Riaz Masood",
+      "kind": "contractor",
+      "entity_type": "person",
+      "active": true,
+      "email": "",
+      "phone": "",
+      "address": "",
+      "ntn": "",
+      "strn": "",
+      "ftn": "",
+      "created_at": "2026-09-20T19:55:41.717266+05:00"
+    }
+  ],
+  "natures": [
+    [
+      "unclassified",
+      "Pending classification"
+    ],
+    [
+      "operating",
+      "Operating receipt / payment"
+    ],
+    [
+      "advance",
+      "Advance"
+    ],
+    [
+      "loan",
+      "Loan principal"
+    ],
+    [
+      "deposit",
+      "Security / refundable deposit"
+    ],
+    [
+      "investment",
+      "Investment principal"
+    ],
+    [
+      "capital",
+      "Capital contribution / distribution"
+    ],
+    [
+      "donation",
+      "Donation"
+    ]
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "code": "PRJ-001",
+      "name": "G-11 Markaz office fit-out",
+      "reference": "PO-2026-114",
+      "active": true,
+      "start_date": "2026-07-01",
+      "end_date": null,
+      "location": "",
+      "contact_name": "",
+      "email": "",
+      "client": null
+    },
+    {
+      "id": 2,
+      "code": "PRJ-002",
+      "name": "Boundary wall — Phase II",
+      "reference": "PO-2026-128",
+      "active": true,
+      "start_date": "2026-08-01",
+      "end_date": null,
+      "location": "",
+      "contact_name": "",
+      "email": "",
+      "client": null
+    }
+  ],
+  "approver_role": 3,
+  "roles": [
+    {
+      "id": 1,
+      "name": "Administrator"
+    },
+    {
+      "id": 5,
+      "name": "Audit Reviewer"
+    },
+    {
+      "id": 4,
+      "name": "Coordinator"
+    },
+    {
+      "id": 2,
+      "name": "Finance Manager"
+    },
+    {
+      "id": 3,
+      "name": "General Manager"
+    }
+  ],
+  "today": "2026-09-20"
+}

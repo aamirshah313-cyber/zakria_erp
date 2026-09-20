@@ -1,0 +1,185 @@
+{
+  "kinds": {
+    "quotations": "Quotation drafts",
+    "invoices": "Invoice drafts",
+    "entries": "Receipt / payment drafts",
+    "positions": "Opening / transfer drafts",
+    "imports": "Uncommitted spreadsheet batches",
+    "categories": "Categories",
+    "sources": "Cash / bank accounts",
+    "projects": "Projects / contracts",
+    "parties": "Parties",
+    "layouts": "Personal report layouts"
+  },
+  "rows": [
+    {
+      "id": 15,
+      "label": "Typing error",
+      "status": "draft",
+      "revision": "1",
+      "date": "2026-09-28",
+      "amount": "100.00",
+      "version": 1,
+      "actions": [
+        "remove"
+      ],
+      "documents": 0
+    },
+    {
+      "id": 14,
+      "label": "Attock filling station",
+      "status": "submitted",
+      "revision": "2",
+      "date": "2026-09-20",
+      "amount": "18600.00",
+      "version": 2,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 13,
+      "label": "Riaz Masood",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-09-26",
+      "amount": "71000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 12,
+      "label": "Al-Rehman Traders",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-09-24",
+      "amount": "64200.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 11,
+      "label": "Capital Builders (Pvt) Ltd",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-09-22",
+      "amount": "275000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 10,
+      "label": "Attock filling station",
+      "status": "cancelled",
+      "revision": "4",
+      "date": "2026-09-08",
+      "amount": "24300.00",
+      "version": 4,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 9,
+      "label": "Blue Area Stationers",
+      "status": "confirmed",
+      "revision": "6",
+      "date": "2026-09-19",
+      "amount": "12400.00",
+      "version": 6,
+      "actions": [],
+      "documents": 1
+    },
+    {
+      "id": 8,
+      "label": "Al-Rehman Traders",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-09-12",
+      "amount": "300000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 7,
+      "label": "Riaz Masood",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-09-05",
+      "amount": "94000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 6,
+      "label": "Example Utilities",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-08-23",
+      "amount": "38750.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 5,
+      "label": "Attock filling station",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-08-09",
+      "amount": "24300.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 4,
+      "label": "Capital Builders (Pvt) Ltd",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-08-02",
+      "amount": "650000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 3,
+      "label": "Riaz Masood",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-07-18",
+      "amount": "86000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 2,
+      "label": "Al-Rehman Traders",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-07-06",
+      "amount": "135500.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    },
+    {
+      "id": 1,
+      "label": "Capital Builders (Pvt) Ltd",
+      "status": "confirmed",
+      "revision": "3",
+      "date": "2026-07-04",
+      "amount": "400000.00",
+      "version": 3,
+      "actions": [],
+      "documents": 0
+    }
+  ],
+  "count": 15,
+  "page": 1
+}

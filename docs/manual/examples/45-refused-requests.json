@@ -1,0 +1,94 @@
+[
+  {
+    "request": "POST /api/register/entries/",
+    "body": {
+      "request_key": "9a8eb17c-c7ff-4aee-97f9-711367c11abe",
+      "date": "2026-09-30",
+      "direction": "payment",
+      "category": 1,
+      "source": 1,
+      "party": "Example",
+      "amount": "-500.00",
+      "method": "cash"
+    },
+    "status": 400,
+    "response": {
+      "non_field_errors": [
+        "Amount must be positive."
+      ]
+    }
+  },
+  {
+    "request": "POST /api/register/entries/",
+    "body": {
+      "request_key": "29dc5270-5ee2-4597-a444-f57893ef97d5",
+      "date": "2026-09-30",
+      "direction": "payment",
+      "category": 1,
+      "source": 1,
+      "party": "Example",
+      "amount": "500.00",
+      "method": "cash",
+      "reporting_class": "income",
+      "nature": "operating"
+    },
+    "status": 400,
+    "response": {
+      "non_field_errors": [
+        "Income requires a receipt and expense requires a payment, with Operating or Donation nature. Classify principal, advances and deposits as Other funds movement."
+      ]
+    }
+  },
+  {
+    "request": "POST /api/register/entries/",
+    "body": {
+      "request_key": "3c84534f-027c-43a9-a45a-3e8b43b65881",
+      "date": "2026-06-15",
+      "direction": "payment",
+      "category": 2,
+      "source": 1,
+      "party": "Example",
+      "amount": "500.00",
+      "method": "cash"
+    },
+    "status": 400,
+    "response": {
+      "non_field_errors": [
+        "This date precedes a reviewed opening balance. Import movements from the opening date onward; do not duplicate earlier history."
+      ]
+    }
+  },
+  {
+    "request": "POST /api/register/entries/1/action/",
+    "body": {
+      "action": "confirm",
+      "version": 3
+    },
+    "status": 403,
+    "response": {
+      "detail": "Your assigned role does not allow this action."
+    }
+  },
+  {
+    "request": "POST /api/register/masters/categories/",
+    "body": {
+      "code": "NEW",
+      "name": "Attempted by a preparer"
+    },
+    "status": 403,
+    "response": {
+      "detail": "Your assigned role does not allow this action."
+    }
+  },
+  {
+    "request": "POST /api/register/entries/16/action/",
+    "body": {
+      "action": "confirm",
+      "version": 2
+    },
+    "status": 403,
+    "response": {
+      "detail": "Only the assigned approval role can review another preparer's submission."
+    }
+  }
+]
