@@ -1,0 +1,14 @@
+# Keep binary files byte-for-byte; a line-ending conversion would corrupt them.
+*.pdf binary
+*.xlsx binary
+*.xls binary
+*.docx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.ttf binary
+*.apk binary
+*.zip binary
+*.zerp-backup binary
+*.sqlite3 binary
