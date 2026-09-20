@@ -7,7 +7,7 @@
 | Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.11.exe (41,713,096 bytes) | Built and checked; not yet installed over the existing installation |
 | Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260920-153255/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
 | Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+11-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
-| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases (private) | 2.1.0.11 not yet published; latest published release is v2.1.0.10 |
+| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.11 (private) | Published; installer, portable ZIP and APK uploaded |
 
 Tests at this release: 99 backend tests and 35 Flutter tests pass. Checks: ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and in the frozen 2.1.0.11 service: an encrypted backup uploaded once, refused without a password, refused again with a wrong password reusing the same kept copy, opened with the right password, the kept copy then removed, and the restore applied with a pre-restore safety copy (2.1 s end to end). The 2.1.0.10 service also passed: leftover upload, staging, snapshot and partial files removed at startup (automatic copies kept), and an upload aborted after 150 MB of 400 MB left nothing behind. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
