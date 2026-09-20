@@ -13,7 +13,7 @@ prompt. The installer:
 
 Windows SmartScreen warns that the publisher is unknown because the build is not yet
 code-signed. Choose **More info → Run anyway**. Full details, including the silent-install
-switches and the uninstall behaviour, are in [../V2_INSTALLER.md](../V2_INSTALLER.md).
+switches and the uninstall behaviour, are in ../V2_INSTALLER.md.
 
 When the application starts, a small **Starting Zakaria ERP…** window appears if the
 service needs more than about a second (first run, or a database upgrade). It closes by
@@ -28,7 +28,7 @@ routes.
 full name, email, password and password confirmation. The password must pass the standard
 strength checks; a weak or repeated password is refused with the reason.
 
-Response ([03-first-run-setup.json](examples/03-first-run-setup.json)):
+Response (03-first-run-setup.json):
 
 ```json
 { "message": "Administrator created. Sign in to continue setup.", "username": "zakaria.admin" }
@@ -42,12 +42,12 @@ Creating that account also creates, once:
 - the register approval rule, set to General Manager.
 
 The setup screen closes permanently as soon as one active account exists
-([02-first-run-required.json](examples/02-first-run-required.json) shows the check that
+(02-first-run-required.json shows the check that
 drives it). After that, new people are added by an administrator.
 
 **Restore from a backup instead** replaces the empty installation with the contents of a
 `.zerp-backup` file, before any account exists. This is how an existing database is moved
-to a new computer; see [chapter 11](11-backup-and-restore.md).
+to a new computer; see [chapter 11](chapter:11-backup-and-restore).
 
 ## Signing in
 

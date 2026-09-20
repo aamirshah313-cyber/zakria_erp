@@ -463,6 +463,7 @@ class _WorkspaceState extends State<Workspace> {
     if (api.can('company.manage'))
       ('Company settings', Icons.business_outlined),
     if (api.can('logs.view')) ('Audit logs', Icons.history_outlined),
+    ('Help & manual', Icons.menu_book_outlined),
     ('My profile', Icons.person_outline),
   ];
   Future<void> refresh() async {

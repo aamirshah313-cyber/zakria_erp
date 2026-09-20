@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'manual.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_selector/file_selector.dart';
@@ -10,6 +12,7 @@ import 'api.dart';
 import 'ui.dart';
 import 'documents.dart';
 import 'accounting_setup.dart';
+import 'manual.dart';
 import 'recovery.dart';
 import 'registers.dart';
 import 'dashboard.dart';
@@ -837,6 +840,7 @@ class _ScreenState extends State<Screen> {
       );
     }
     if (widget.page == 'Reports') return const ReportsPage();
+    if (widget.page == 'Help & manual') return const ManualPage();
     return Remote(
       future: data,
       builder: (d) => switch (widget.page) {

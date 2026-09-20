@@ -1,0 +1,74 @@
+{
+  "chapters": [
+    {
+      "file": "01-overview.md",
+      "title": "1. Overview",
+      "summary": "What the system is, its two modes, where data lives, what it does not do"
+    },
+    {
+      "file": "02-getting-started.md",
+      "title": "2. Getting started",
+      "summary": "Installing, first run, signing in, forgotten passwords, the phone app"
+    },
+    {
+      "file": "03-access-control.md",
+      "title": "3. Access control",
+      "summary": "Roles, the full permission list, user accounts, sessions"
+    },
+    {
+      "file": "04-register-setup.md",
+      "title": "4. Register setup",
+      "summary": "Categories, cash/bank accounts, projects, parties, approval role, setup imports"
+    },
+    {
+      "file": "05-receipts-and-payments.md",
+      "title": "5. Receipts and payments",
+      "summary": "The main form, classification, splits, review workflow, documents, cancellation"
+    },
+    {
+      "file": "06-openings-and-transfers.md",
+      "title": "6. Openings and internal transfers",
+      "summary": "Opening balances, own-account transfers, cut-off rules"
+    },
+    {
+      "file": "07-spreadsheet-import.md",
+      "title": "7. Spreadsheet import",
+      "summary": "Staging a workbook, mapping columns, control totals, committing drafts"
+    },
+    {
+      "file": "08-reports.md",
+      "title": "8. Reports and statements",
+      "summary": "Activity ledger, report builder, every field and grouping, PDF/Excel/CSV/image"
+    },
+    {
+      "file": "09-dashboard.md",
+      "title": "9. Dashboard",
+      "summary": "Overview figures, approvals queue, monthly and category charts"
+    },
+    {
+      "file": "10-data-management.md",
+      "title": "10. Data management",
+      "summary": "Removing and restoring drafts and setup records"
+    },
+    {
+      "file": "11-backup-and-restore.md",
+      "title": "11. Backup and restore",
+      "summary": "Manual and automatic copies, passwords, restoring, moving to a new computer"
+    },
+    {
+      "file": "12-audit-log.md",
+      "title": "12. Audit log",
+      "summary": "What is recorded, who may read it, exporting"
+    },
+    {
+      "file": "13-documents-pilot.md",
+      "title": "13. Quotations and invoices (pilot module)",
+      "summary": "The earlier document module, parties, approval rules, company settings"
+    },
+    {
+      "file": "14-reference.md",
+      "title": "14. Reference",
+      "summary": "Endpoints, statuses, limits, file formats, glossary"
+    }
+  ]
+}

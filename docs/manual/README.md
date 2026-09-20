@@ -27,6 +27,13 @@ repository, produced by one script against a throwaway database. No company data
 
 The worked example and its files: [examples/README.md](examples/README.md).
 
+## Inside the application
+
+The same chapters ship with the application: open **Help & manual** in the sidebar, which
+every signed-in person can see. It reads the copies in `apps/client/assets/manual/`, so it
+works with no internet, and it has a search box across all chapters. The example files are
+not shipped; links to them appear as plain text there.
+
 ## Keeping this manual current
 
 1. Change or add the feature, with its tests.
@@ -42,7 +49,15 @@ The worked example and its files: [examples/README.md](examples/README.md).
    `C:\ProgramData\ZakariaERP`.
 3. Update the chapter that owns the feature, and the [reference](14-reference.md) tables if
    permissions, endpoints or limits changed.
-4. Note the build number at the top of this file and in the chapter you changed.
+4. Copy the chapters into the application, so in-app Help matches:
+
+   ```bash
+   .\.venv\Scripts\python.exe scripts\sync_manual_assets.py
+   ```
+
+   `--check` reports whether the shipped copy is stale without writing; the release
+   checklist runs it.
+5. Note the build number at the top of this file and in the chapter you changed.
 
 Chapters follow the application's own words: a heading here matches the screen or button
 in the app, so a reader can move between the two without translating.

@@ -65,6 +65,8 @@ flutter:
 
   assets:
     - assets/branding/
+    # The manual, so Help works offline (scripts/sync_manual_assets.py).
+    - assets/manual/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

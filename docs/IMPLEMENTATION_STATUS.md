@@ -70,6 +70,13 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
 
+## Help inside the application — 20 September 2026
+
+- **Help & manual** in the sidebar, visible to everyone signed in: the chapters ship as application assets (apps/client/assets/manual), so Help works without internet, with a search box across all chapters and working links between them.
+- Markdown is rendered by apps/client/lib/manual.dart — headings, paragraphs, lists, tables, fenced code, quotes and inline formatting — rather than by a package, so the Windows plugin list is unchanged.
+- scripts/sync_manual_assets.py copies docs/manual into the application and takes `--check` for the release checklist; the shipped copy must match docs/manual.
+- Verified: 40 Flutter tests pass (5 new), and a Windows release build carries all 15 manual files in data/flutter_assets/assets/manual.
+
 ## Complete manual — 20 September 2026
 
 - **docs/manual/**: fourteen chapters covering every module and form — overview, getting started, access control, register setup, receipts and payments, openings and transfers, spreadsheet import, reports, dashboard, data management, backup and restore, audit log, the quotations/invoices pilot, and a reference of endpoints, statuses and limits.

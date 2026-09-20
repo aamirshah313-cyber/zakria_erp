@@ -21,6 +21,16 @@ cd ..\..
 
 Golden images change only for intentional visual changes: `flutter test test/layout_test.dart --update-goldens`, then look at the new PNGs before committing. Delete `apps/client/test/failures/` after failed golden runs.
 
+## 2b. Manual
+
+```powershell
+.\.venv\Scripts\python.exe scripts\sync_manual_assets.py --check
+```
+
+The shipped copy under `apps\clientssets\manual` must match `docs\manual`; run the
+script without `--check` to refresh it, and re-run `scriptsuild_manual_examples.py` when
+a feature changed what the examples show.
+
 ## 3. Brand assets (only if the logo changed)
 
 ```powershell
