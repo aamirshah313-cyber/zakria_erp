@@ -4,19 +4,19 @@
 
 | Item | Location | State |
 |---|---|---|
-| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.10.exe (41,707,400 bytes) | Built and checked; not yet installed over the existing installation |
-| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260920-012214/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
-| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+10-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
-| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.10 (private) | Published; installer, portable ZIP and APK uploaded |
+| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.11.exe (41,713,096 bytes) | Built and checked; not yet installed over the existing installation |
+| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260920-153255/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
+| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+11-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
+| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases (private) | 2.1.0.11 not yet published; latest published release is v2.1.0.10 |
 
-Tests at this release: 95 backend tests and 33 Flutter tests pass. Checks: ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and in the frozen 2.1.0.10 service: leftover upload, staging, snapshot and partial files removed at startup (automatic copies kept), and an upload aborted after 150 MB of 400 MB left nothing in restore-staging with the service still healthy. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
+Tests at this release: 99 backend tests and 35 Flutter tests pass. Checks: ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and in the frozen 2.1.0.11 service: an encrypted backup uploaded once, refused without a password, refused again with a wrong password reusing the same kept copy, opened with the right password, the kept copy then removed, and the restore applied with a pre-restore safety copy (2.1 s end to end). The 2.1.0.10 service also passed: leftover upload, staging, snapshot and partial files removed at startup (automatic copies kept), and an upload aborted after 150 MB of 400 MB left nothing behind. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
 ## Next tasks
 
 Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
 
 ### 1. Verify the latest release on this computer (user and developer)
-- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.10.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
+- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.11.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
 - Check the MZS logo in the installer wizard, the Start menu/taskbar icon, the sign-in screen, the workspace sidebar, and a PDF, Excel and PNG report header.
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
@@ -37,12 +37,11 @@ Current priority order. Sections below record what is already delivered; the old
 ### 4. Release hardening (developer)
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
-- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.8 and older package folders) after the 2.1.0.10 upgrade is confirmed, keeping 2.1.0.9 for rollback.
+- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.9 and older package folders) after the 2.1.0.11 upgrade is confirmed, keeping 2.1.0.10 for rollback.
 - This computer was very slow for a few hours after its restart on 19 September (one Windows build ~20 minutes, application window ~30 s after launch); by the evening a full build took about 5 minutes again. Check Windows Update and antivirus activity before timing startup or judging performance on client hardware.
 - Flutter plugin links need Developer Mode or one elevated `flutter pub get` whenever the Flutter plugin list changes (or the links folder is cleared by a failed build). Decide whether to enable Developer Mode on this build computer.
-- Password-protected backups chosen from a file are uploaded twice (once to discover the password is needed, once with it). Keep the first upload on the service and let the password step reuse it, so large encrypted restores upload once.
-- Show progress for the final "Replace all data" step (safety copy, restore, upgrade); it currently shows only "Saving…".
-- The Starting window was not re-checked on 2.1.0.9 or 2.1.0.10 (launcher code unchanged since 2.1.0.8); re-check it during the upgrade in task 1.
+- The Starting window was not re-checked since 2.1.0.8 (launcher code unchanged); re-check it during the upgrade in task 1.
+- The 2.1.0.10 and 2.1.0.11 APKs were not checked with `aapt dump badging`: the Android build tools were not found on this computer. Locate them (Android Studio SDK build-tools) or drop that step from the checklist.
 
 ### 5. Branding decisions (user)
 - Approve the rebuilt logo (branding/mzs-logo.png) against the original branding/original/MZS.jpg.
@@ -69,6 +68,13 @@ Double-entry posting, trial balance and statutory statements; payroll, fixed ass
 ## V2.1 — current increment
 
 Data management, cash-basis income/expense classification, expanded report filters/groupings and reviewed setup-record spreadsheet imports are implemented. A downloadable Excel testing kit imports into the actual setup and receipt/payment forms as drafts. See V2_INCREMENT_5.md for fields, permissions, import sequence, acceptance checks and limits. All 62 backend tests pass and no model migrations are missing.
+
+## Single upload for encrypted restores — 20 September 2026 (release 2.1.0.11)
+
+- **A password-protected backup file is uploaded once.** The service keeps the uploaded copy in restore-staging while the password is asked for, and the password attempt (including a retry after a wrong password) reuses it. The copy is removed when the backup opens, when the upload is abandoned for an hour, or at the next service start. A kept upload belongs to the session that sent it.
+- **"Replace all data" now shows its own dialog** explaining that a safety copy is saved first and that the application must stay open, with a progress bar. It has no Cancel: the step must finish once it starts.
+
+Verification: 99 backend tests (4 new: the password attempt reuses the upload and it is then removed; a kept upload is refused for another session; an unreadable upload is not kept; an unknown identifier is refused) and 35 Flutter tests (2 new: a password-protected file picked from disk is uploaded once and the second request carries the identifier; the replace dialog explains itself, shows a progress bar and offers no Cancel).
 
 ## Backup progress and clean-up — 20 September 2026 (release 2.1.0.10)
 

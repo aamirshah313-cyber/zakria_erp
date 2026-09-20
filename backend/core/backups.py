@@ -63,7 +63,8 @@ AAD_V2 = b'zakaria-erp-backup-v2'
 DATABASE, ENCRYPTED = 'database.sqlite3', 'database.sqlite3.enc'
 # Previews expire after 30 minutes; anything left longer was abandoned.
 STALE = 3600
-NAME_PATTERN =re.compile(r'^(manual|auto|pre-restore|before-upgrade)-\d{8}-\d{6}(-\d+)?\.zerp-backup$')
+UPLOAD_PATTERN = re.compile(r'^upload-[0-9a-f]{32}\.zerp-backup$')
+NAME_PATTERN = re.compile(r'^(manual|auto|pre-restore|before-upgrade)-\d{8}-\d{6}(-\d+)?\.zerp-backup$')
 _restore_lock = threading.Lock()
 
 
@@ -470,15 +471,63 @@ class Backups(DesktopOnly):
         return download(name, stream)
 
 
-def uploaded_backup(request):
-    """A local copy's path, or the uploaded file (Django spools large uploads to disk)."""
-    if request.data.get('name'):
-        return local_backup(request.data['name'])
-    upload = request.FILES.get('file')
-    if not upload:
-        raise ValidationError('Choose a backup file.')
+def keep_upload(upload, user):
+    """Copy an uploaded backup into staging so a password attempt need not re-send it."""
+    ensure_space(staging_dir(), upload.size or 0)
+    path = staging_dir() / f'upload-{secrets.token_hex(16)}{EXTENSION}'
     upload.seek(0)
-    return upload
+    with open(path, 'wb') as sink:
+        shutil.copyfileobj(upload, sink, COPY_BUFFER)
+    claim = signing.dumps({'file': path.name, 'user': user.pk if user else None}, salt='restore-upload')
+    return path, claim
+
+
+def kept_upload(token, user):
+    try:
+        claim = signing.loads(token, salt='restore-upload', max_age=STALE)
+    except signing.BadSignature:
+        raise ValidationError('The backup file is no longer on this computer. Choose it again.')
+    if claim.get('user') != (user.pk if user else None) or not UPLOAD_PATTERN.match(claim['file']):
+        raise ValidationError('The backup file belongs to another session. Choose it again.')
+    path = staging_dir() / claim['file']
+    if not path.is_file():
+        raise ValidationError('The backup file is no longer on this computer. Choose it again.')
+    return path
+
+
+def _needs_password(error):
+    detail = getattr(error, 'detail', None)
+    return isinstance(detail, dict) and 'password' in detail
+
+
+def restore_preview(request, user, allow_local):
+    """Stage a restore from a local copy, a kept upload, or a newly uploaded file.
+
+    An uploaded file is kept while the password is asked for, so a password-protected
+    backup is sent once instead of twice; it is removed as soon as staging ends.
+    """
+    if allow_local and request.data.get('name'):
+        return stage_restore(local_backup(request.data['name']), str(request.data.get('password', '')), user)
+    if request.data.get('upload'):
+        claim = str(request.data['upload'])
+        source = kept_upload(claim, user)
+    else:
+        upload = request.FILES.get('file')
+        if not upload:
+            raise ValidationError('Choose a backup file.')
+        source, claim = keep_upload(upload, user)
+    remove = source
+    try:
+        return stage_restore(source, str(request.data.get('password', '')), user)
+    except ValidationError as error:
+        if _needs_password(error):
+            # Keep the file so the password attempt reuses it instead of uploading again.
+            error.detail['upload'] = claim
+            remove = None
+        raise
+    finally:
+        if remove is not None:
+            remove.unlink(missing_ok=True)
 
 
 class Restore(DesktopOnly):
@@ -489,7 +538,7 @@ class Restore(DesktopOnly):
                 raise ValidationError({'current_password': ['Current password is incorrect.']})
             safety = apply_restore(request.data.get('token', ''), request.user, request.user.username)
             return Response({'message': 'Restore complete. Everyone has been signed out; sign in with an account from the backup.', 'safety_backup': safety})
-        result = stage_restore(uploaded_backup(request), str(request.data.get('password', '')), request.user)
+        result = restore_preview(request, request.user, allow_local=True)
         audit(request.user, 'system.restore_previewed', result['backup']['created_at'])
         return Response(result)
 
@@ -510,8 +559,4 @@ class SetupRestore(DesktopOnly):
         if step == 'apply':
             safety = apply_restore(request.data.get('token', ''), None, 'first-run setup')
             return Response({'message': 'Restore complete. Sign in with an account from the backup.', 'safety_backup': safety})
-        upload = request.FILES.get('file')
-        if not upload:
-            raise ValidationError('Choose a backup file.')
-        upload.seek(0)
-        return Response(stage_restore(upload, str(request.data.get('password', '')), None))
+        return Response(restore_preview(request, None, allow_local=False))

@@ -1,5 +1,10 @@
 import 'dart:convert';
 
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -194,4 +199,132 @@ void main() {
     await cancelled;
     expect(find.text('Saving backup'), findsNothing);
   });
+
+  testWidgets('Replacing all data explains itself and cannot be dismissed', (
+    tester,
+  ) async {
+    final finished = Completer<void>();
+    late Future<void> running;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => running = busyDialog(
+              context,
+              'Replacing all data',
+              'Saving a safety copy first.',
+              () => finished.future,
+            ),
+            child: const Text('go'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.show();
+    expect(find.text('Saving a safety copy first.'), findsOneWidget);
+    expect(find.text('Cancel'), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    finished.complete();
+    await running;
+    await tester.pumpAndSettle();
+    expect(find.text('Replacing all data'), findsNothing);
+  });
+
+  testWidgets('A password-protected file is uploaded once, then reused', (
+    tester,
+  ) async {
+    api.user = {
+      'permissions': ['system.backup', 'system.restore'],
+    };
+    FileSelectorPlatform.instance = _PickOneBackup();
+    addTearDown(() => FileSelectorPlatform.instance = _PickOneBackup());
+    final calls = <String>[];
+    final client = MockClient((request) async {
+      if (request.method == 'GET') {
+        return http.Response(jsonEncode(listing), 200);
+      }
+      final type = request.headers['content-type'] ?? '';
+      final multipart = type.startsWith('multipart/form-data');
+      calls.add(multipart ? 'upload' : 'json ${request.body}');
+      if (request.url.path.endsWith('/apply/')) {
+        return http.Response(jsonEncode({'message': 'ok'}), 200);
+      }
+      if (multipart) {
+        return http.Response(
+          jsonEncode({
+            'password': [
+              'This backup is password-protected. Enter its backup password.',
+            ],
+            'upload': 'kept-upload-1',
+          }),
+          400,
+        );
+      }
+      return http.Response(
+        jsonEncode({
+          'token': 'signed',
+          'backup': {
+            'created_at': '2026-09-20T09:00:00+05:00',
+            'app_version': '2.1.0',
+            'kind': 'manual',
+            'encrypted': true,
+          },
+          'summary': {
+            'company': 'Muhammad Zakaria and Sons',
+            'users': 3,
+            'active_users': 2,
+            'register_entries': 41,
+            'latest_entry_date': '2026-09-16',
+            'attachments': 5,
+            'upgrade_required': false,
+          },
+        }),
+        200,
+      );
+    });
+    await http.runWithClient(() async {
+      await showPage(tester, () {});
+      await tester.tap(find.byKey(const Key('restore-backup')));
+      await tester.pumpAndSettle();
+      expect(find.text('Password-protected backup'), findsOneWidget);
+      await tester.enterText(
+        find.byType(TextField).last,
+        'Backup-phrase-1234!',
+      );
+      await tester.tap(find.text('Open backup'));
+      await tester.pumpAndSettle();
+      expect(find.text('Replace all data with this backup?'), findsOneWidget);
+      await tester.enterText(
+        find.byType(TextField).last,
+        'Current-phrase-1234!',
+      );
+      await tester.tap(find.text('Replace all data'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go to sign-in'));
+      await tester.pumpAndSettle();
+    }, () => client);
+    expect(calls.where((c) => c == 'upload').length, 1);
+    expect(calls[1], contains('kept-upload-1'));
+    expect(calls[1], isNot(contains('This backup is password-protected')));
+  });
+}
+
+extension on WidgetTester {
+  /// Pumps once so a dialog opened by the code under test becomes visible.
+  Future<void> show() => pump(const Duration(milliseconds: 50));
+}
+
+/// Stands in for the file picker: always returns the same backup file.
+class _PickOneBackup extends FileSelectorPlatform {
+  @override
+  Future<XFile?> openFile({
+    List<XTypeGroup>? acceptedTypeGroups,
+    String? initialDirectory,
+    String? confirmButtonText,
+  }) async => XFile.fromData(
+    Uint8List.fromList(List<int>.filled(2048, 3)),
+    name: 'secret.zerp-backup',
+    length: 2048,
+  );
 }

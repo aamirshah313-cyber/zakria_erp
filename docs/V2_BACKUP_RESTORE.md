@@ -15,7 +15,7 @@ New installations give both to Administrator. On existing data (for example the 
 
 Backups stream through files on disk in both directions (service and application), so size is limited by free disk space, not memory. The service checks free space on the data drive before writing a backup or staging a restore and reports how much is needed. Uploads for restore spool to `restore-staging` on the data drive; the local service accepts request bodies up to 64 GB.
 
-Saving a backup, saving a copy and uploading a backup for restore show the amount transferred against the total, with **Cancel**. Cancelling a save deletes the partly written file. Cancelling during "Preparing the backup…" or "Checking the backup…" stops the application waiting; the service finishes that step and discards the result.
+Saving a backup, saving a copy and uploading a backup for restore show the amount transferred against the total, with **Cancel**. Replacing the data shows its own message and cannot be cancelled once it starts. Cancelling a save deletes the partly written file. Cancelling during "Preparing the backup…" or "Checking the backup…" stops the application waiting; the service finishes that step and discards the result.
 
 Files left by an interrupted backup or restore (for example when the application is closed during an upload) are removed when the service next starts: everything in `restore-staging`, and unfinished `*.snapshot` and `*.partial` files in `backups`. While the service runs, the same files are removed hourly once untouched for an hour; files still in use are skipped.
 
@@ -36,7 +36,7 @@ Automatic copies protect against mistakes, not disk failure or theft of the comp
 ## Restore
 
 1. **Backup & restore → Choose backup file…**, or **Restore** beside a copy on this computer.
-2. Enter the backup password if the file is protected.
+2. Enter the backup password if the file is protected. A file chosen from disk is uploaded once: the service keeps it (in `restore-staging`) while the password is asked for and removes it as soon as the backup opens, the upload is abandoned for an hour, or the service restarts.
 3. Review the preview: backup date and version, company, accounts, register entries with the latest date, supporting documents, and whether an upgrade will follow.
 4. Enter your current password and choose **Replace all data**.
 

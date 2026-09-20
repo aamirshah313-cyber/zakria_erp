@@ -14,11 +14,18 @@ const _slow = Duration(minutes: 60);
 
 /// Readable text from API errors, which arrive as JSON or decoded maps.
 String problem(Object error) {
-  final text = error.toString().replaceFirst('Exception: ', '');
+  final text = error
+      .toString()
+      .replaceFirst('Exception: ', '')
+      // The kept-upload identifier is for the next request, not for reading.
+      .replaceAll(RegExp(r',?\s*"?upload"?: ?"?[\w:.\-]+"?'), '');
   List<String> flatten(dynamic value) => switch (value) {
     String s => [s],
     List l => [for (final v in l) ...flatten(v)],
-    Map m => [for (final v in m.values) ...flatten(v)],
+    Map m => [
+      for (final entry in m.entries)
+        if (entry.key != 'upload') ...flatten(entry.value),
+    ],
     _ => ['$value'],
   };
   try {
@@ -104,6 +111,56 @@ Future<T> withProgress<T>(
   }
 }
 
+/// The service's identifier for an upload it kept while asking for the backup
+/// password, if this error carries one.
+String? _keptUpload(Object error) {
+  try {
+    final body = jsonDecode(error.toString().replaceFirst('Exception: ', ''));
+    final id = body is Map ? body['upload'] : null;
+    return id is String ? id : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Runs [work] behind a dialog that cannot be dismissed or cancelled, for a
+/// step that must finish once it starts.
+Future<T> busyDialog<T>(
+  BuildContext context,
+  String title,
+  String explanation,
+  Future<T> Function() work,
+) async {
+  final navigator = Navigator.of(context);
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        title: Text(title),
+        content: SizedBox(
+          width: 440,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(explanation, key: const Key('busy-explanation')),
+              const SizedBox(height: 16),
+              const LinearProgressIndicator(),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+  try {
+    return await work();
+  } finally {
+    navigator.pop();
+  }
+}
+
 /// Choose, preview and apply a restore. Returns true once data was replaced.
 /// [setup] restores into a new installation before any account exists.
 Future<bool> restoreBackup(
@@ -118,19 +175,24 @@ Future<bool> restoreBackup(
     if (file == null) return false;
   }
   final chosen = file;
+  // Set when the service keeps a password-protected upload: the password
+  // attempt then reuses that copy instead of sending the file again.
+  String? kept;
   Future<Map> stage(String password) => withProgress(
     context,
     'Opening backup',
-    preparing: chosen == null ? 'Checking the backup…' : 'Starting upload…',
+    preparing: chosen == null || kept != null
+        ? 'Checking the backup…'
+        : 'Starting upload…',
     checking: 'Checking the backup…',
     moved: 'Uploaded',
     (transfer) async {
-      if (chosen == null) {
+      if (chosen == null || kept != null) {
         final response = await api.request(
           base,
           method: 'POST',
           body: {
-            'name': localName,
+            if (kept == null) 'name': localName else 'upload': kept,
             if (password.isNotEmpty) 'password': password,
           },
           timeout: _slow,
@@ -162,6 +224,7 @@ Future<bool> restoreBackup(
       if (context.mounted) notice(context, problem(e));
       return false;
     }
+    kept = _keptUpload(e);
   }
   if (preview == null) {
     final password = TextEditingController();
@@ -231,11 +294,17 @@ Future<bool> restoreBackup(
     ),
     () async {
       try {
-        await api.request(
-          '${base}apply/',
-          method: 'POST',
-          body: {'token': result['token'], 'current_password': current.text},
-          timeout: _slow,
+        await busyDialog(
+          context,
+          'Replacing all data',
+          'Saving a safety copy of the current data, then restoring the backup. '
+              'This can take a few minutes on a large database. Do not close the application.',
+          () => api.request(
+            '${base}apply/',
+            method: 'POST',
+            body: {'token': result['token'], 'current_password': current.text},
+            timeout: _slow,
+          ),
         );
       } catch (e) {
         throw Exception(problem(e));

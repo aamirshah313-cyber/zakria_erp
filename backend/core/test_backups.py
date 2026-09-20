@@ -292,3 +292,47 @@ class LeftoverCleanupTests(BackupTestCase):
         with patch.object(Path, 'unlink', side_effect=PermissionError):
             self.assertEqual(backups.clean_leftovers(), 0)
         self.assertTrue(all(path.exists() for path in paths))
+
+
+class KeptUploadTests(BackupTestCase):
+    """A password-protected backup chosen from a file is sent once, not twice."""
+
+    def test_password_attempt_reuses_the_uploaded_file(self):
+        content = self.backup(password=BACKUP_PASSWORD, confirm_password=BACKUP_PASSWORD)
+        first = self.upload(content)
+        self.assertEqual(first.status_code, 400)
+        self.assertIn('password-protected', str(first.data['password']))
+        token = first.data['upload']
+        staging = backups.staging_dir()
+        self.assertEqual([p.name.split('-')[0] for p in staging.iterdir()], ['upload'])
+
+        wrong = self.client.post('/api/system/restore/', {'upload': token, 'password': 'Wrong-phrase-0000!'}, format='json')
+        self.assertEqual(wrong.status_code, 400)
+        self.assertIn('Wrong backup password', str(wrong.data['password']))
+        self.assertEqual(wrong.data['upload'], token)
+
+        opened = self.client.post('/api/system/restore/', {'upload': token, 'password': BACKUP_PASSWORD}, format='json')
+        self.assertEqual(opened.status_code, 200, opened.data)
+        self.assertTrue(opened.data['backup']['encrypted'])
+        self.assertFalse(list(staging.glob('upload-*')), 'the kept upload is removed once the backup opens')
+
+    def test_a_kept_upload_belongs_to_the_session_that_sent_it(self):
+        content = self.backup(password=BACKUP_PASSWORD, confirm_password=BACKUP_PASSWORD)
+        token = self.upload(content).data['upload']
+        other = User.objects.create_user('second', password=PASSWORD, role=self.role, status='active')
+        client = APIClient()
+        client.force_authenticate(other)
+        response = client.post('/api/system/restore/', {'upload': token, 'password': BACKUP_PASSWORD}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('another session', str(response.data))
+
+    def test_an_unreadable_upload_is_not_kept(self):
+        response = self.upload(b'not a backup at all')
+        self.assertEqual(response.status_code, 400)
+        self.assertNotIn('upload', response.data)
+        self.assertEqual(list(backups.staging_dir().glob('upload-*')), [])
+
+    def test_a_forgotten_upload_identifier_is_refused(self):
+        response = self.client.post('/api/system/restore/', {'upload': 'made-up', 'password': BACKUP_PASSWORD}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Choose it again', str(response.data))
