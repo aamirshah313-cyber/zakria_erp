@@ -4,25 +4,26 @@
 
 | Item | Location | State |
 |---|---|---|
-| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.11.exe (41,713,096 bytes) | Built and checked; not yet installed over the existing installation |
-| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260920-153255/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
-| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+11-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
-| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases/tag/v2.1.0.11 (private) | Published; installer, portable ZIP and APK uploaded |
+| Windows installer | artifacts/installer/ZakariaERP-Setup-2.1.0.12.exe (41,745,474 bytes) | Built and checked; not yet installed over the existing installation |
+| Windows app folder | artifacts/windows-v2/ZakariaERP-V2-20260920-202551/ (+ .zip) | Built and checked; runs against storage/v2-desktop test data |
+| Android APK (debug) | artifacts/android/ZakariaERP-2.1.0+12-debug.apk | Built from the same commit; cannot sign in until a reachable server exists |
+| Downloads | https://github.com/aamirshah313-cyber/zakria_erp/releases (private) | 2.1.0.12 built, not yet published; latest published release is v2.1.0.11 |
 
-Tests at this release: 99 backend tests and 35 Flutter tests pass. Checks: ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and in the frozen 2.1.0.11 service: an encrypted backup uploaded once, refused without a password, refused again with a wrong password reusing the same kept copy, opened with the right password, the kept copy then removed, and the restore applied with a pre-restore safety copy (2.1 s end to end). The 2.1.0.10 service also passed: leftover upload, staging, snapshot and partial files removed at startup (automatic copies kept), and an upload aborted after 150 MB of 400 MB left nothing behind. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
+Tests at this release: 99 backend tests and 40 Flutter tests pass. Checks: ZIP integrity and no private files, bundled-service smoke check on a temporary data folder, and in the frozen 2.1.0.11 service: an encrypted backup uploaded once, refused without a password, refused again with a wrong password reusing the same kept copy, opened with the right password, the kept copy then removed, and the restore applied with a pre-restore safety copy (2.1 s end to end). The 2.1.0.10 service also passed: leftover upload, staging, snapshot and partial files removed at startup (automatic copies kept), and an upload aborted after 150 MB of 400 MB left nothing behind. Artifacts are not in git. Do not distribute ZakariaERP-Setup-2.1.0.6.exe or earlier: 2.1.0.6 carries the rejected first logo redraw, and 2.1.0 / 2.1.0.5 predate the logo.
 
 ## Next tasks
 
 Current priority order. Sections below record what is already delivered; the older "Next development order" further down is historical pilot planning.
 
 ### 1. Verify the latest release on this computer (user and developer)
-- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.11.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
+- Upgrade the installed application with artifacts/installer/ZakariaERP-Setup-2.1.0.12.exe; confirm the upgrade keeps C:\ProgramData\ZakariaERP data and accounts (migration 0010 runs after an automatic backup) and that the Starting window appears while it upgrades.
 - Check the MZS logo in the installer wizard, the Start menu/taskbar icon, the sign-in screen, the workspace sidebar, and a PDF, Excel and PNG report header.
 - Grant system.backup and system.restore to Administrator in Roles & permissions (installations from the 2.1.0 setup lack them), then Refresh.
 - Exercise backup and restore in the installed (frozen) service: password-protected backup to USB, small change, restore, confirm the change is undone and a pre-restore copy exists.
 - Close the application and confirm zakaria_service.exe stops with it.
 - Attach a statement to a draft opening and a draft transfer (record menu: Supporting documents), submit them, and confirm the documents lock and remain viewable to the reviewer.
 - Check the supporting-document counts on the Openings & transfers list and in Data management.
+- Open Help & manual in the sidebar: read a chapter, follow a link between chapters, and search for a phrase such as "control total". The rendered screen has not been seen with real fonts yet (test screenshots draw text as boxes).
 - Save a new (format 2) password-protected backup, and restore one made with 2.1.0.8 if you have it, to confirm both formats work in the installed copy. Watch the progress (MB saved / uploaded) and try Cancel once on a save: no partial file should remain.
 - Install the debug APK on a test phone: check the launcher icon, sign-in logo and that Connection settings opens (sign-in waits for task 7).
 
@@ -38,7 +39,7 @@ Current priority order. Sections below record what is already delivered; the old
 - Keep docs/manual current: extend scripts/build_manual_examples.py with each new feature, re-run it, and update the owning chapter (see docs/manual/README.md).
 - Clean-computer test: install, first-run setup, restore from backup, upgrade and uninstall on a Windows PC without Python or Flutter.
 - Two Windows accounts: confirm shared data and the one-session-at-a-time message.
-- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.9 and older package folders) after the 2.1.0.11 upgrade is confirmed, keeping 2.1.0.10 for rollback.
+- Remove superseded local artifacts (installers 2.1.0 to 2.1.0.10 and older package folders) after the 2.1.0.12 upgrade is confirmed, keeping 2.1.0.11 for rollback.
 - This computer was very slow for a few hours after its restart on 19 September (one Windows build ~20 minutes, application window ~30 s after launch); by the evening a full build took about 5 minutes again. Check Windows Update and antivirus activity before timing startup or judging performance on client hardware.
 - Flutter plugin links need Developer Mode or one elevated `flutter pub get` whenever the Flutter plugin list changes (or the links folder is cleared by a failed build). Decide whether to enable Developer Mode on this build computer.
 - The Starting window was not re-checked since 2.1.0.8 (launcher code unchanged); re-check it during the upgrade in task 1.
@@ -75,7 +76,7 @@ Data management, cash-basis income/expense classification, expanded report filte
 - **Help & manual** in the sidebar, visible to everyone signed in: the chapters ship as application assets (apps/client/assets/manual), so Help works without internet, with a search box across all chapters and working links between them.
 - Markdown is rendered by apps/client/lib/manual.dart — headings, paragraphs, lists, tables, fenced code, quotes and inline formatting — rather than by a package, so the Windows plugin list is unchanged.
 - scripts/sync_manual_assets.py copies docs/manual into the application and takes `--check` for the release checklist; the shipped copy must match docs/manual.
-- Verified: 40 Flutter tests pass (5 new), and a Windows release build carries all 15 manual files in data/flutter_assets/assets/manual.
+- Verified: 40 Flutter tests pass (5 new), and the 2.1.0.12 package and ZIP carry all 15 manual files in data/flutter_assets/assets/manual.
 
 ## Complete manual — 20 September 2026
 
